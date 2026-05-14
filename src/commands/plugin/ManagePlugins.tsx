@@ -837,7 +837,12 @@ export function ManagePlugins({
       if (!hasMcpb) {
         try {
           const marketplaceDir = path.join(selectedPlugin!.plugin.path, '..');
-          const marketplaceJsonPath = path.join(marketplaceDir, '.microcode-plugin', 'marketplace.json');
+          let marketplaceJsonPath = path.join(marketplaceDir, '.microcode-plugin', 'marketplace.json');
+          try {
+            await fs.access(marketplaceJsonPath);
+          } catch {
+            marketplaceJsonPath = path.join(marketplaceDir, '.claude-plugin', 'marketplace.json');
+          }
           const content = await fs.readFile(marketplaceJsonPath, 'utf-8');
           const marketplace_1 = jsonParse(content);
           const entry_0 = marketplace_1.plugins?.find((p: {

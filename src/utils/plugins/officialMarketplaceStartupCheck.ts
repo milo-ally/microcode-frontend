@@ -142,13 +142,15 @@ export type OfficialMarketplaceCheckResult = {
  * 5. Attempt installation
  * 6. Record the result in GlobalConfig
  *
+ * @param options.forceRetry - Bypass retry backoff (e.g., when user actively opens Discover page)
  * @returns Result indicating whether installation succeeded or was skipped
  */
-export async function checkAndInstallOfficialMarketplace(): Promise<OfficialMarketplaceCheckResult> {
+export async function checkAndInstallOfficialMarketplace(options?: { forceRetry?: boolean }): Promise<OfficialMarketplaceCheckResult> {
   const config = getGlobalConfig()
 
   // Check if we should retry installation
-  if (!shouldRetryInstallation(config)) {
+  // forceRetry bypasses the backoff for user-initiated actions (e.g., opening Discover page)
+  if (!options?.forceRetry && !shouldRetryInstallation(config)) {
     const reason: OfficialMarketplaceSkipReason =
       config.officialMarketplaceAutoInstallFailReason ?? 'already_attempted'
     logForDebugging(`Official marketplace auto-install skipped: ${reason}`)

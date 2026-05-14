@@ -558,20 +558,28 @@ async function loadMarkdownFiles(dir: string): Promise<
   const useNative = isEnvTruthy(process.env.MICROCODE_USE_NATIVE_FILE_SEARCH)
   const signal = AbortSignal.timeout(3000)
   let files: string[]
-  try {
-    files = useNative
-      ? await findMarkdownFilesNative(dir, signal)
-      : await ripGrep(
-          ['--files', '--hidden', '--follow', '--no-ignore', '--glob', '*.md'],
-          dir,
-          signal,
+  if (useNative) {
+    files = await findMarkdownFilesNative(dir, signal)
+  } else {
+    try {
+      files = await ripGrep(
+        ['--files', '--hidden', '--follow', '--no-ignore', '--glob', '*.md'],
+        dir,
+        signal,
+      )
+    } catch (e: unknown) {
+      if (isFsInaccessible(e)) {
+        // Ripgrep failed (binary missing/broken, or dir inaccessible).
+        // Fall back to native walker — it handles missing/inaccessible dirs
+        // gracefully (catches per-entry errors, returns empty).
+        logForDebugging(
+          `Ripgrep failed (${e instanceof Error ? e.message : String(e)}), falling back to native file search for ${dir}`,
         )
-  } catch (e: unknown) {
-    // Handle missing/inaccessible dir directly instead of pre-checking
-    // existence (TOCTOU). findMarkdownFilesNative already catches internally;
-    // ripGrep rejects on inaccessible target paths.
-    if (isFsInaccessible(e)) return []
-    throw e
+        files = await findMarkdownFilesNative(dir, signal)
+      } else {
+        throw e
+      }
+    }
   }
 
   const results = await Promise.all(

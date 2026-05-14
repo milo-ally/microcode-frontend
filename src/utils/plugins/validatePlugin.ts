@@ -447,7 +447,7 @@ export async function validateMarketplaceManifest(
       // Only local sources: remote sources would need cloning to check.
       const manifestDir = path.dirname(absolutePath)
       const marketplaceRoot =
-        path.basename(manifestDir) === '.microcode-plugin'
+        path.basename(manifestDir) === '.microcode-plugin' || path.basename(manifestDir) === '.claude-plugin'
           ? path.dirname(manifestDir)
           : manifestDir
       for (const [i, entry] of marketplace.plugins.entries()) {
@@ -458,12 +458,23 @@ export async function validateMarketplaceManifest(
         ) {
           continue
         }
-        const pluginJsonPath = path.join(
+        let pluginJsonPath = path.join(
           marketplaceRoot,
           entry.source,
           '.microcode-plugin',
           'plugin.json',
         )
+        // Fallback to .claude-plugin if .microcode-plugin doesn't exist
+        try {
+          await readFile(pluginJsonPath, { encoding: 'utf-8' })
+        } catch {
+          pluginJsonPath = path.join(
+            marketplaceRoot,
+            entry.source,
+            '.claude-plugin',
+            'plugin.json',
+          )
+        }
         let manifestVersion: string | undefined
         try {
           const raw = await readFile(pluginJsonPath, { encoding: 'utf-8' })
@@ -827,23 +838,23 @@ export async function validateManifest(
   }
 
   if (stats?.isDirectory()) {
-    // Look for manifest files in .microcode-plugin directory
+    // Look for manifest files in .microcode-plugin or .claude-plugin directory
     // Prefer marketplace.json over plugin.json
-    const marketplacePath = path.join(
-      absolutePath,
-      '.microcode-plugin',
-      'marketplace.json',
-    )
-    const marketplaceResult = await validateMarketplaceManifest(marketplacePath)
-    // Only fall through if the marketplace file was not found (ENOENT)
-    if (marketplaceResult.errors[0]?.code !== 'ENOENT') {
-      return marketplaceResult
-    }
+    const pluginDirCandidates = ['.microcode-plugin', '.claude-plugin']
 
-    const pluginPath = path.join(absolutePath, '.microcode-plugin', 'plugin.json')
-    const pluginResult = await validatePluginManifest(pluginPath)
-    if (pluginResult.errors[0]?.code !== 'ENOENT') {
-      return pluginResult
+    for (const pluginDir of pluginDirCandidates) {
+      const marketplacePath = path.join(absolutePath, pluginDir, 'marketplace.json')
+      const marketplaceResult = await validateMarketplaceManifest(marketplacePath)
+      // Only fall through if the marketplace file was not found (ENOENT)
+      if (marketplaceResult.errors[0]?.code !== 'ENOENT') {
+        return marketplaceResult
+      }
+
+      const pluginPath = path.join(absolutePath, pluginDir, 'plugin.json')
+      const pluginResult = await validatePluginManifest(pluginPath)
+      if (pluginResult.errors[0]?.code !== 'ENOENT') {
+        return pluginResult
+      }
     }
 
     return {
@@ -851,7 +862,7 @@ export async function validateManifest(
       errors: [
         {
           path: 'directory',
-          message: `No manifest found in directory. Expected .microcode-plugin/marketplace.json or .microcode-plugin/plugin.json`,
+          message: `No manifest found in directory. Expected .microcode-plugin/marketplace.json or .microcode-plugin/plugin.json (also checked .claude-plugin/)`,
         },
       ],
       warnings: [],

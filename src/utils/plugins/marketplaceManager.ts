@@ -1352,6 +1352,16 @@ async function cacheMarketplaceFromUrl(
 /**
  * Generate a cache path for a marketplace source
  */
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    const fs = getFsImplementation()
+    await fs.stat(filePath)
+    return true
+  } catch {
+    return false
+  }
+}
+
 function getCachePathForSource(source: MarketplaceSource): string {
   const tempName =
     source.source === 'github'
@@ -1686,6 +1696,21 @@ async function loadAndCacheMarketplace(
 
       default:
         throw new Error(`Unsupported marketplace source type`)
+    }
+
+    // Fallback: if .microcode-plugin/marketplace.json not found, try .claude-plugin/
+    // (upstream repos like anthropics/claude-plugins-official use .claude-plugin)
+    if (
+      marketplacePath.includes('.microcode-plugin') &&
+      !(await fileExists(marketplacePath))
+    ) {
+      const claudePluginPath = marketplacePath.replace(
+        '.microcode-plugin',
+        '.claude-plugin',
+      )
+      if (await fileExists(claudePluginPath)) {
+        marketplacePath = claudePluginPath
+      }
     }
 
     // Load and validate the marketplace
@@ -2065,6 +2090,15 @@ async function readCachedMarketplace(
   const nestedPath = join(installLocation, '.microcode-plugin', 'marketplace.json')
   try {
     return await parseFileWithSchema(nestedPath, PluginMarketplaceSchema())
+  } catch (e) {
+    if (e instanceof ConfigParseError) throw e
+    const code = getErrnoCode(e)
+    if (code !== 'ENOENT' && code !== 'ENOTDIR') throw e
+  }
+  // Fallback: try .claude-plugin/ (upstream repos use this name)
+  const claudePluginPath = join(installLocation, '.claude-plugin', 'marketplace.json')
+  try {
+    return await parseFileWithSchema(claudePluginPath, PluginMarketplaceSchema())
   } catch (e) {
     if (e instanceof ConfigParseError) throw e
     const code = getErrnoCode(e)

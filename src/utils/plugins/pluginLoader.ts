@@ -977,12 +977,20 @@ export async function cachePlugin(
   }
 
   const manifestPath = join(tempPath, '.microcode-plugin', 'plugin.json')
+  const claudePluginManifestPath = join(tempPath, '.claude-plugin', 'plugin.json')
   const legacyManifestPath = join(tempPath, 'plugin.json')
   let manifest: PluginManifest
 
-  if (await pathExists(manifestPath)) {
+  // Try .microcode-plugin first, then .claude-plugin (upstream repos), then legacy root
+  const resolvedManifestPath = (await pathExists(manifestPath))
+    ? manifestPath
+    : (await pathExists(claudePluginManifestPath))
+      ? claudePluginManifestPath
+      : null
+
+  if (resolvedManifestPath) {
     try {
-      const content = await readFile(manifestPath, { encoding: 'utf-8' })
+      const content = await readFile(resolvedManifestPath, { encoding: 'utf-8' })
       const parsed = jsonParse(content)
       const result = PluginManifestSchema().safeParse(parsed)
 
@@ -994,12 +1002,12 @@ export async function cachePlugin(
           .map(err => `${err.path.join('.')}: ${err.message}`)
           .join(', ')
 
-        logForDebugging(`Invalid manifest at ${manifestPath}: ${errors}`, {
+        logForDebugging(`Invalid manifest at ${resolvedManifestPath}: ${errors}`, {
           level: 'error',
         })
 
         throw new Error(
-          `Plugin has an invalid manifest file at ${manifestPath}. Validation errors: ${errors}`,
+          `Plugin has an invalid manifest file at ${resolvedManifestPath}. Validation errors: ${errors}`,
         )
       }
     } catch (error) {
@@ -1014,14 +1022,14 @@ export async function cachePlugin(
       // JSON parse error
       const errorMsg = errorMessage(error)
       logForDebugging(
-        `Failed to parse manifest at ${manifestPath}: ${errorMsg}`,
+        `Failed to parse manifest at ${resolvedManifestPath}: ${errorMsg}`,
         {
           level: 'error',
         },
       )
 
       throw new Error(
-        `Plugin has a corrupt manifest file at ${manifestPath}. JSON parse error: ${errorMsg}`,
+        `Plugin has a corrupt manifest file at ${resolvedManifestPath}. JSON parse error: ${errorMsg}`,
       )
     }
   } else if (await pathExists(legacyManifestPath)) {
@@ -1356,7 +1364,14 @@ export async function createPluginFromPath(
 
   // Step 1: Load or create the plugin manifest
   // This provides metadata about the plugin (name, version, etc.)
-  const manifestPath = join(pluginPath, '.microcode-plugin', 'plugin.json')
+  // Try .microcode-plugin first, then .claude-plugin (upstream repos), then default
+  let manifestPath = join(pluginPath, '.microcode-plugin', 'plugin.json')
+  if (!(await pathExists(manifestPath))) {
+    const claudePluginPath = join(pluginPath, '.claude-plugin', 'plugin.json')
+    if (await pathExists(claudePluginPath)) {
+      manifestPath = claudePluginPath
+    }
+  }
   const manifest = await loadPluginManifest(manifestPath, fallbackName, source)
 
   // Step 2: Create the base plugin object
@@ -2427,8 +2442,10 @@ async function finishLoadingPluginFromPath(
   const errors: PluginError[] = []
 
   // Check if plugin.json exists to determine if we should use marketplace manifest
+  // Try .microcode-plugin first, then .claude-plugin (upstream repos)
   const manifestPath = join(pluginPath, '.microcode-plugin', 'plugin.json')
-  const hasManifest = await pathExists(manifestPath)
+  const claudePluginManifestPath = join(pluginPath, '.claude-plugin', 'plugin.json')
+  const hasManifest = await pathExists(manifestPath) || await pathExists(claudePluginManifestPath)
 
   const { plugin, errors: pluginErrors } = await createPluginFromPath(
     pluginPath,

@@ -21,6 +21,7 @@ import { isPluginGloballyInstalled } from '../../utils/plugins/installedPluginsM
 import { createPluginId, detectEmptyMarketplaceReason, type EmptyMarketplaceReason, formatFailureDetails, formatMarketplaceLoadingErrors, loadMarketplacesWithGracefulDegradation } from '../../utils/plugins/marketplaceHelpers.js';
 import { loadKnownMarketplacesConfig } from '../../utils/plugins/marketplaceManager.js';
 import { OFFICIAL_MARKETPLACE_NAME } from '../../utils/plugins/officialMarketplace.js';
+import { checkAndInstallOfficialMarketplace } from '../../utils/plugins/officialMarketplaceStartupCheck.js';
 import { installPluginFromMarketplace } from '../../utils/plugins/pluginInstallationHelpers.js';
 import { isPluginBlockedByPolicy } from '../../utils/plugins/pluginPolicy.js';
 import { plural } from '../../utils/stringUtils.js';
@@ -123,7 +124,16 @@ export function DiscoverPlugins({
   useEffect(() => {
     async function loadAllPlugins() {
       try {
-        const config = await loadKnownMarketplacesConfig();
+        let config = await loadKnownMarketplacesConfig();
+
+        // If no marketplaces are configured, try to auto-install the official marketplace.
+        // This handles the case where the async startup notification hasn't completed yet
+        // or failed on a previous attempt. forceRetry bypasses the exponential backoff
+        // since the user is actively waiting for results.
+        if (Object.keys(config).length === 0) {
+          await checkAndInstallOfficialMarketplace({ forceRetry: true });
+          config = await loadKnownMarketplacesConfig();
+        }
 
         // Load marketplaces with graceful degradation
         const {
@@ -561,7 +571,11 @@ export function DiscoverPlugins({
         <EmptyStateMessage reason={emptyReason} />
         <Box marginTop={1}>
           <Text dimColor italic>
-            Esc to go back
+            <Byline>
+              <Text>type to search</Text>
+              <ConfigurableShortcutHint action="select:accept" context="Select" fallback="Enter" description="details" />
+              <ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="back" />
+            </Byline>
           </Text>
         </Box>
       </Box>;
@@ -572,10 +586,10 @@ export function DiscoverPlugins({
   return <Box flexDirection="column">
       <Box>
         <Text bold>Discover plugins</Text>
-        {pagination.needsPagination && <Text dimColor>
+        {filteredPlugins.length > 0 && <Text dimColor>
             {' '}
             ({pagination.scrollPosition.current}/
-            {pagination.scrollPosition.total})
+            {filteredPlugins.length})
           </Text>}
       </Box>
 

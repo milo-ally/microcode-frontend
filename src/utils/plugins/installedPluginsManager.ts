@@ -1012,7 +1012,13 @@ function getPluginVersionFromManifest(
   pluginId: string,
 ): string {
   const fs = getFsImplementation()
-  const manifestPath = join(pluginCachePath, '.microcode-plugin', 'plugin.json')
+  let manifestPath = join(pluginCachePath, '.microcode-plugin', 'plugin.json')
+  if (!fs.existsSync(manifestPath)) {
+    const claudePluginPath = join(pluginCachePath, '.claude-plugin', 'plugin.json')
+    if (fs.existsSync(claudePluginPath)) {
+      manifestPath = claudePluginPath
+    }
+  }
 
   try {
     const manifestContent = fs.readFileSync(manifestPath, { encoding: 'utf-8' })
@@ -1220,8 +1226,8 @@ export async function migrateFromEnabledPlugins(): Promise<void> {
 
           installPath = pluginCachePath
 
-          // Only read manifest if the .microcode-plugin dir is present
-          if (dirEntries.includes('.microcode-plugin')) {
+          // Only read manifest if the .microcode-plugin or .claude-plugin dir is present
+          if (dirEntries.includes('.microcode-plugin') || dirEntries.includes('.claude-plugin')) {
             version = getPluginVersionFromManifest(pluginCachePath, pluginId)
           }
 
