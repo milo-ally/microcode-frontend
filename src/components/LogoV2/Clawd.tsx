@@ -2,51 +2,91 @@ import * as React from 'react'
 import { Box, Text } from '../../ink.js'
 import { env } from '../../utils/env.js'
 
-export type ClawdPose = 'default' | 'arms-up' | 'look-left' | 'look-right'
-
-type Props = {
-  pose?: ClawdPose
-}
-
-// Diamond/geometric design. Each pose is 9 columns wide, 3 rows tall.
+// Large cat design. 24 columns wide, 10 rows tall.
 // All segments use clawd_body color for a clean, unified look.
-const POSES: Record<ClawdPose, [string, string, string]> = {
-  default: ['  ▄▀▀▀▄  ', ' ▐█████▌ ', '  ▀▄▄▄▀  '],
-  'look-left': ['  ▟▀▀▀▄  ', ' ▐█████▌ ', '  ▀▄▄▄▙  '],
-  'look-right': ['  ▄▀▀▀▙  ', ' ▐█████▌ ', '  ▟▄▄▄▀  '],
-  'arms-up': ['▗▟▀▀▀▀▀▙▖', '  ▐███▌  ', '  ▀▄▄▄▀  '],
-}
+const CAT = [
+  '         ██       ██',
+  '       ████       ████',
+  '     ████████████████████',
+  '  ███                    ███',
+  '████     ██       ██      ████  ',
+  ' ███                      ███  ',
+  '  ██          █           ██   ',
+  '   ██         █           ██ ',
+  '    ██       █ █        ██',
+  '      ███            ███',
+  '        █████████████',
+] as const
 
 // Apple Terminal uses bg-fill since it doesn't render vertical space between
-// background colors. The middle row is filled with clawd_body background.
-const APPLE_POSES: Record<ClawdPose, [string, string, string]> = {
-  default: [' ▄▀▀▀▄ ', '       ', ' ▀▄▄▄▀ '],
-  'look-left': [' ▟▀▀▀▄ ', '       ', ' ▀▄▄▄▙ '],
-  'look-right': [' ▄▀▀▀▙ ', '       ', ' ▟▄▄▄▀ '],
-  'arms-up': ['▗▟▀▀▀▙▖', '  ▐█▌  ', ' ▀▄▄▄▀ '],
-}
+// background colors. The middle rows are filled with clawd_body background.
+const APPLE_CAT = [
+  '       ██       ██',
+  '     ████       ████',
+  '   ███████████████████',
+  ' ███                  ███',
+  '███     ██       ██    ████',
+  '███                    ███',
+  ' ██          █         ██',
+  '  ██         █         ██',
+  '   ██               ██',
+  '     ███          ███',
+  '       ████████████',
+] as const
 
-export function Clawd({ pose = 'default' }: Props = {}) {
+export function Clawd() {
   if (env.terminal === 'Apple_Terminal') {
-    return <AppleTerminalClawd pose={pose} />
+    return <AppleTerminalClawd />
   }
-  const [row1, row2, row3] = POSES[pose]
+  const [row1, row2, row3, row4, row5, row6, row7, row8, row9, row10, row11] = CAT
   return (
     <Box flexDirection="column">
       <Text color="clawd_body">{row1}</Text>
       <Text color="clawd_body">{row2}</Text>
       <Text color="clawd_body">{row3}</Text>
+      <Text color="clawd_body">{row4}</Text>
+      <Text color="clawd_body">{row5}</Text>
+      <Text color="clawd_body">{row6}</Text>
+      <Text color="clawd_body">{row7}</Text>
+      <Text color="clawd_body">{row8}</Text>
+      <Text color="clawd_body">{row9}</Text>
+      <Text color="clawd_body">{row10}</Text>
+      <Text color="clawd_body">{row11}</Text>
     </Box>
   )
 }
 
-function AppleTerminalClawd({ pose }: { pose: ClawdPose }) {
-  const [top, middle, bottom] = APPLE_POSES[pose]
+function AppleTerminalClawd() {
+  const [row1, row2, row3, row4, row5, row6, row7, row8, row9, row10, row11] = APPLE_CAT
   return (
     <Box flexDirection="column" alignItems="center">
-      <Text color="clawd_body">{top}</Text>
-      <Text backgroundColor="clawd_body">{middle}</Text>
-      <Text color="clawd_body">{bottom}</Text>
+      <Text color="clawd_body">{row1}</Text>
+      <Text backgroundColor="clawd_body">{row2}</Text>
+      <Text backgroundColor="clawd_body">{row3}</Text>
+      <Text backgroundColor="clawd_body">{row4}</Text>
+      <Text backgroundColor="clawd_body">{row5}</Text>
+      <Text backgroundColor="clawd_body">{row6}</Text>
+      <Text backgroundColor="clawd_body">{row7}</Text>
+      <Text color="clawd_body">{row8}</Text>
+      <Text color="clawd_body">{row9}</Text>
+      <Text color="clawd_body">{row10}</Text>
+      <Text color="clawd_body">{row11}</Text>
     </Box>
   )
 }
+
+
+/* 
+         ██       ██
+       ████       ████
+     ████████████████████
+  ███                    ███
+████     ██       ██      ████  
+ ███                      ███  
+  ██          █           ██   
+   ██         █           ██ 
+    ██                  ██
+      ███            ███
+        █████████████
+
+   */  
