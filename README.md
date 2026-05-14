@@ -38,6 +38,11 @@ Show version:
 bun run version
 ```
 
+Compile and run 
+```bash
+bun run build 
+microcode
+```
 ## Provider Configuration
 
 Microcode supports multiple LLM providers. Configure via the `--settings` flag or the interactive `/provider` command.
