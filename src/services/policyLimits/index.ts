@@ -7,7 +7,7 @@
  *
  * Eligibility:
  * - Console users (API key): All eligible
- * - OAuth users (Claude.ai): Only Team and Enterprise/C4E subscribers are eligible
+ * - OAuth users (Microcode.ai): Only Team and Enterprise/C4E subscribers are eligible
  * - API fails open (non-blocking) - if fetch fails, continues without restrictions
  * - API returns empty restrictions for users without policy limits
  */
@@ -18,14 +18,14 @@ import { readFileSync as fsReadFileSync } from 'fs'
 import { unlink, writeFile } from 'fs/promises'
 import { join } from 'path'
 import {
-  CLAUDE_AI_INFERENCE_SCOPE,
+  MICROCODE_AI_INFERENCE_SCOPE,
   getOauthConfig,
   OAUTH_BETA_HEADER,
 } from '../../constants/oauth.js'
 import {
   checkAndRefreshOAuthTokenIfNeeded,
   getAnthropicApiKeyWithSource,
-  getClaudeAIOAuthTokens,
+  getMicrocodeAIOAuthTokens,
 } from '../../utils/auth.js'
 import { registerCleanup } from '../../utils/cleanupRegistry.js'
 import { logForDebugging } from '../../utils/debug.js'
@@ -39,7 +39,7 @@ import {
 import { isEssentialTrafficOnly } from '../../utils/privacyLevel.js'
 import { sleep } from '../../utils/sleep.js'
 import { jsonStringify } from '../../utils/slowOperations.js'
-import { getClaudeCodeUserAgent } from '../../utils/userAgent.js'
+import { getMicroCodeUserAgent } from '../../utils/userAgent.js'
 import { getRetryDelay } from '../api/withRetry.js'
 import {
   type PolicyLimitsFetchResult,
@@ -187,14 +187,14 @@ export function isPolicyLimitsEligible(): boolean {
     // No API key available - continue to check OAuth
   }
 
-  // For OAuth users, check if they have Claude.ai tokens
-  const tokens = getClaudeAIOAuthTokens()
+  // For OAuth users, check if they have Microcode.ai tokens
+  const tokens = getMicrocodeAIOAuthTokens()
   if (!tokens?.accessToken) {
     return false
   }
 
-  // Must have Claude.ai inference scope
-  if (!tokens.scopes?.includes(CLAUDE_AI_INFERENCE_SCOPE)) {
+  // Must have Microcode.ai inference scope
+  if (!tokens.scopes?.includes(MICROCODE_AI_INFERENCE_SCOPE)) {
     return false
   }
 
@@ -244,8 +244,8 @@ function getAuthHeaders(): {
     // No API key available - continue to check OAuth
   }
 
-  // Fall back to OAuth tokens (for Claude.ai users)
-  const oauthTokens = getClaudeAIOAuthTokens()
+  // Fall back to OAuth tokens (for Microcode.ai users)
+  const oauthTokens = getMicrocodeAIOAuthTokens()
   if (oauthTokens?.accessToken) {
     return {
       headers: {
@@ -315,7 +315,7 @@ async function fetchPolicyLimits(
     const endpoint = getPolicyLimitsEndpoint()
     const headers: Record<string, string> = {
       ...authHeaders.headers,
-      'User-Agent': getClaudeCodeUserAgent(),
+      'User-Agent': getMicroCodeUserAgent(),
     }
 
     if (cachedChecksum) {

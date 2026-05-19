@@ -1,13 +1,13 @@
 # Tool Use Concepts
 
-Use this note for tool calling, function execution, and agent loops built on Claude.
+Use this note for tool calling, function execution, and agent loops built on Microcode.
 
 ## Core Model
 
 - You declare tools in the request.
-- Claude decides whether to call a tool based on the prompt and tool choice configuration.
+- Microcode decides whether to call a tool based on the prompt and tool choice configuration.
 - Your application executes the tool and sends the result back in a follow-up message.
-- Claude then continues reasoning with the tool result in context.
+- Microcode then continues reasoning with the tool result in context.
 
 ## Design Guidance
 
@@ -21,7 +21,7 @@ Use this note for tool calling, function execution, and agent loops built on Cla
 - Over-broad tools that make selection ambiguous
 - Schemas that allow too many invalid states
 - Tool results that are too verbose or omit critical fields
-- Forgetting to loop until Claude stops requesting tools
+- Forgetting to loop until Microcode stops requesting tools
 
 ## Practical Agent Advice
 

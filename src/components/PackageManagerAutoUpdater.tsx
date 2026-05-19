@@ -73,7 +73,7 @@ export function PackageManagerAutoUpdater(t0) {
   if (!updateAvailable) {
     return null;
   }
-  const updateCommand = packageManager === "homebrew" ? "brew upgrade microcode" : packageManager === "winget" ? "winget upgrade Anthropic.ClaudeCode" : packageManager === "apk" ? "apk upgrade microcode" : "your package manager update command";
+  const updateCommand = packageManager === "homebrew" ? "brew upgrade microcode" : packageManager === "winget" ? "winget upgrade Anthropic.MicroCode" : packageManager === "apk" ? "apk upgrade microcode" : "your package manager update command";
   let t4;
   if ($[3] !== verbose) {
     t4 = verbose && <Text dimColor={true} wrap="truncate">currentVersion: {MACRO.VERSION}</Text>;

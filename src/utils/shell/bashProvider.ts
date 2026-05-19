@@ -115,10 +115,10 @@ export async function createBashShellProvider(
       // but Node.js needs native Windows paths for file operations.
       const shellCwdFilePath = opts.useSandbox
         ? posixJoin(opts.sandboxTmpDir!, `cwd-${opts.id}`)
-        : posixJoin(shellTmpdir, `claude-${opts.id}-cwd`)
+        : posixJoin(shellTmpdir, `microcode-${opts.id}-cwd`)
       const cwdFilePath = opts.useSandbox
         ? posixJoin(opts.sandboxTmpDir!, `cwd-${opts.id}`)
-        : nativeJoin(tmpdir, `claude-${opts.id}-cwd`)
+        : nativeJoin(tmpdir, `microcode-${opts.id}-cwd`)
 
       // Defensive rewrite: the model sometimes emits Windows CMD-style `2>nul`
       // redirects. In POSIX bash (including Git Bash on Windows), this creates a
@@ -209,12 +209,12 @@ export async function createBashShellProvider(
       command: string,
     ): Promise<Record<string, string>> {
       // TMUX SOCKET ISOLATION (DEFERRED):
-      // We initialize Claude's tmux socket ONLY AFTER the Tmux tool has been used
+      // We initialize Microcode's tmux socket ONLY AFTER the Tmux tool has been used
       // at least once, OR if the current command appears to use tmux.
       // This defers the startup cost until tmux is actually needed.
       //
       // Once the Tmux tool is used (or a tmux command runs), all subsequent Bash
-      // commands will use Claude's isolated socket via the TMUX env var override.
+      // commands will use Microcode's isolated socket via the TMUX env var override.
       //
       // See tmuxSocket.ts for the full isolation architecture documentation.
       const commandUsesTmux = command.includes('tmux')
@@ -226,8 +226,8 @@ export async function createBashShellProvider(
       }
       const microcodeTmuxEnv = getMicrocodeTmuxEnv()
       const env: Record<string, string> = {}
-      // CRITICAL: Override TMUX to isolate ALL tmux commands to Claude's socket.
-      // This is NOT the user's TMUX value - it points to Claude's isolated socket.
+      // CRITICAL: Override TMUX to isolate ALL tmux commands to Microcode's socket.
+      // This is NOT the user's TMUX value - it points to Microcode's isolated socket.
       // When null (before socket initializes), user's TMUX is preserved.
       if (microcodeTmuxEnv) {
         env.TMUX = microcodeTmuxEnv

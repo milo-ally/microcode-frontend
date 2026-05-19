@@ -209,7 +209,7 @@ export async function shouldAutoCompact(
   // sessionMemory + manual /compact working.
   //
   // Consult isContextCollapseEnabled (not the raw gate) so the
-  // CLAUDE_CONTEXT_COLLAPSE env override is honored here too. require()
+  // MICROCODE_CONTEXT_COLLAPSE env override is honored here too. require()
   // inside the block breaks the init-time cycle (this file exports
   // getEffectiveContextWindowSize which collapse's index imports).
   if (feature('CONTEXT_COLLAPSE')) {

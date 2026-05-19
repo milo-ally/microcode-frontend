@@ -57,7 +57,7 @@ export type PermissionHandlerOptions = {
   hasFeedback?: boolean
   feedback?: string
   enteredFeedbackMode?: boolean
-  scope?: 'claude-folder' | 'global-claude-folder'
+  scope?: 'microcode-folder' | 'global-microcode-folder'
 }
 
 function handleAcceptOnce(
@@ -103,11 +103,11 @@ function handleAcceptSession(
 
   // For claude-folder scope, grant session-level access to all .microcode/ files
   if (
-    options?.scope === 'claude-folder' ||
-    options?.scope === 'global-claude-folder'
+    options?.scope === 'microcode-folder' ||
+    options?.scope === 'global-microcode-folder'
   ) {
     const pattern =
-      options.scope === 'global-claude-folder'
+      options.scope === 'global-microcode-folder'
         ? GLOBAL_MICROCODE_FOLDER_PERMISSION_PATTERN
         : MICROCODE_FOLDER_PERMISSION_PATTERN
     const suggestions: PermissionUpdate[] = [

@@ -977,15 +977,15 @@ export async function cachePlugin(
   }
 
   const manifestPath = join(tempPath, '.microcode-plugin', 'plugin.json')
-  const claudePluginManifestPath = join(tempPath, '.claude-plugin', 'plugin.json')
+  const microcodePluginManifestPath = join(tempPath, '.microcode-plugin', 'plugin.json')
   const legacyManifestPath = join(tempPath, 'plugin.json')
   let manifest: PluginManifest
 
-  // Try .microcode-plugin first, then .claude-plugin (upstream repos), then legacy root
+  // Try .microcode-plugin first, then .microcode-plugin (upstream repos), then legacy root
   const resolvedManifestPath = (await pathExists(manifestPath))
     ? manifestPath
-    : (await pathExists(claudePluginManifestPath))
-      ? claudePluginManifestPath
+    : (await pathExists(microcodePluginManifestPath))
+      ? microcodePluginManifestPath
       : null
 
   if (resolvedManifestPath) {
@@ -1364,12 +1364,12 @@ export async function createPluginFromPath(
 
   // Step 1: Load or create the plugin manifest
   // This provides metadata about the plugin (name, version, etc.)
-  // Try .microcode-plugin first, then .claude-plugin (upstream repos), then default
+  // Try .microcode-plugin first, then .microcode-plugin (upstream repos), then default
   let manifestPath = join(pluginPath, '.microcode-plugin', 'plugin.json')
   if (!(await pathExists(manifestPath))) {
-    const claudePluginPath = join(pluginPath, '.claude-plugin', 'plugin.json')
-    if (await pathExists(claudePluginPath)) {
-      manifestPath = claudePluginPath
+    const microcodePluginPath = join(pluginPath, '.microcode-plugin', 'plugin.json')
+    if (await pathExists(microcodePluginPath)) {
+      manifestPath = microcodePluginPath
     }
   }
   const manifest = await loadPluginManifest(manifestPath, fallbackName, source)
@@ -2442,10 +2442,10 @@ async function finishLoadingPluginFromPath(
   const errors: PluginError[] = []
 
   // Check if plugin.json exists to determine if we should use marketplace manifest
-  // Try .microcode-plugin first, then .claude-plugin (upstream repos)
+  // Try .microcode-plugin first, then .microcode-plugin (upstream repos)
   const manifestPath = join(pluginPath, '.microcode-plugin', 'plugin.json')
-  const claudePluginManifestPath = join(pluginPath, '.claude-plugin', 'plugin.json')
-  const hasManifest = await pathExists(manifestPath) || await pathExists(claudePluginManifestPath)
+  const microcodePluginManifestPath = join(pluginPath, '.microcode-plugin', 'plugin.json')
+  const hasManifest = await pathExists(manifestPath) || await pathExists(microcodePluginManifestPath)
 
   const { plugin, errors: pluginErrors } = await createPluginFromPath(
     pluginPath,
@@ -3139,7 +3139,7 @@ export const loadAllPlugins = memoize(async (): Promise<PluginLoadResult> => {
  *
  * MICROCODE_SYNC_PLUGIN_INSTALL=1 delegates to the full loader — that
  * mode explicitly opts into blocking install before first query, and
- * main.tsx's getClaudeCodeMcpConfigs()/getInitialSettings().agent run
+ * main.tsx's getMicroCodeMcpConfigs()/getInitialSettings().agent run
  * BEFORE runHeadless() can warm this cache. First-run CCR/headless has
  * no installed_plugins.json, so cache-only would miss plugin MCP servers
  * and plugin settings (the agent key). The interactive startup win is

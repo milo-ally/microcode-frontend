@@ -1,4 +1,4 @@
-# TypeScript Claude API
+# TypeScript Microcode API
 
 Use `@anthropic-ai/sdk` for direct access to the Messages API from TypeScript.
 

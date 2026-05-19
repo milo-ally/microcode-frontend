@@ -1,10 +1,10 @@
 import { formatTotalCost } from '../../cost-tracker.js'
 import { currentLimits } from '../../services/microcodeAiLimits.js'
 import type { LocalCommandCall } from '../../types/command.js'
-import { isClaudeAISubscriber } from '../../utils/auth.js'
+import { isMicrocodeAISubscriber } from '../../utils/auth.js'
 
 export const call: LocalCommandCall = async () => {
-  if (isClaudeAISubscriber()) {
+  if (isMicrocodeAISubscriber()) {
     let value: string
 
     if (currentLimits.isUsingOverage) {

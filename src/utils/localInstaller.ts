@@ -14,12 +14,12 @@ import { jsonStringify } from './slowOperations.js'
 
 // Lazy getters: getMicrocodeConfigHomeDir() is memoized and reads process.env.
 // Evaluating at module scope would capture the value before entrypoints like
-// hfi.tsx get a chance to set CLAUDE_CONFIG_DIR in main(), and would also
+// hfi.tsx get a chance to set MICROCODE_CONFIG_DIR in main(), and would also
 // populate the memoize cache with that stale value for all 150+ other callers.
 function getLocalInstallDir(): string {
   return join(getMicrocodeConfigHomeDir(), 'local')
 }
-export function getLocalClaudePath(): string {
+export function getLocalMicrocodePath(): string {
   return join(getLocalInstallDir(), 'microcode')
 }
 
@@ -74,7 +74,7 @@ export async function ensureLocalPackageEnvironment(): Promise<boolean> {
     const wrapperPath = join(localInstallDir, 'microcode')
     const created = await writeIfMissing(
       wrapperPath,
-      `#!/bin/sh\nexec "${localInstallDir}/node_modules/.bin/claude" "$@"`,
+      `#!/bin/sh\nexec "${localInstallDir}/node_modules/.bin/microcode" "$@"`,
       0o755,
     )
     if (created) {
@@ -90,11 +90,11 @@ export async function ensureLocalPackageEnvironment(): Promise<boolean> {
 }
 
 /**
- * Install or update Claude CLI package in the local directory
+ * Install or update Microcode CLI package in the local directory
  * @param channel - Release channel to use (latest or stable)
  * @param specificVersion - Optional specific version to install (overrides channel)
  */
-export async function installOrUpdateClaudePackage(
+export async function installOrUpdateMicrocodePackage(
   channel: ReleaseChannel,
   specificVersion?: string | null,
 ): Promise<'in_progress' | 'success' | 'install_failed'> {
@@ -118,7 +118,7 @@ export async function installOrUpdateClaudePackage(
 
     if (result.code !== 0) {
       const error = new Error(
-        `Failed to install Claude CLI package: ${result.stderr}`,
+        `Failed to install Microcode CLI package: ${result.stderr}`,
       )
       logError(error)
       return result.code === 190 ? 'in_progress' : 'install_failed'

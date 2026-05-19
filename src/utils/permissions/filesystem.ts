@@ -98,7 +98,7 @@ export function normalizeCaseForComparison(path: string): string {
  * permission dialog and SDK suggestions, so iterating on one skill doesn't
  * require granting session access to all of .microcode/ (settings.json, hooks/, etc.).
  */
-export function getClaudeSkillScope(
+export function getMicrocodeSkillScope(
   filePath: string,
 ): { skillName: string; pattern: string } | null {
   const absolutePath = expandPath(filePath)
@@ -197,7 +197,7 @@ function getSettingsPaths(): string[] {
   ).filter(path => path !== undefined)
 }
 
-export function isClaudeSettingsPath(filePath: string): boolean {
+export function isMicrocodeSettingsPath(filePath: string): boolean {
   // SECURITY: Normalize path structure first to prevent bypass via redundant ./
   // sequences like `./.microcode/./settings.json` which would evade the endsWith() check
   const expandedPath = expandPath(filePath)
@@ -208,8 +208,8 @@ export function isClaudeSettingsPath(filePath: string): boolean {
 
   // Use platform separator so endsWith checks work on both Unix (/) and Windows (\)
   if (
-    normalizedPath.endsWith(`${sep}.claude${sep}settings.json`) ||
-    normalizedPath.endsWith(`${sep}.claude${sep}settings.local.json`)
+    normalizedPath.endsWith(`${sep}.microcode${sep}settings.json`) ||
+    normalizedPath.endsWith(`${sep}.microcode${sep}settings.local.json`)
   ) {
     // Include .microcode/settings.json even for other projects
     return true
@@ -222,8 +222,8 @@ export function isClaudeSettingsPath(filePath: string): boolean {
 }
 
 // Always ask when Microcode tries to edit its own config files
-function isClaudeConfigFilePath(filePath: string): boolean {
-  if (isClaudeSettingsPath(filePath)) {
+function isMicrocodeConfigFilePath(filePath: string): boolean {
+  if (isMicrocodeSettingsPath(filePath)) {
     return true
   }
 
@@ -292,7 +292,7 @@ function isProjectDirPath(absolutePath: string): boolean {
 
 /**
  * Checks if the scratchpad directory feature is enabled.
- * The scratchpad is a per-session directory for Claude to write temporary files.
+ * The scratchpad is a per-session directory for Microcode to write temporary files.
  * Controlled by the tengu_scratch Statsig gate.
  */
 export function isScratchpadEnabled(): boolean {
@@ -300,7 +300,7 @@ export function isScratchpadEnabled(): boolean {
 }
 
 /**
- * Returns the user-specific Claude temp directory name.
+ * Returns the user-specific Microcode temp directory name.
  * On Unix: 'microcode-{uid}' to prevent multi-user permission conflicts
  * On Windows: 'microcode' (tmpdir() is already per-user)
  */
@@ -311,14 +311,14 @@ export function getMicrocodeTempDirName(): string {
   // Use UID to create per-user directories, preventing permission conflicts
   // when multiple users share the same /tmp directory
   const uid = process.getuid?.() ?? 0
-  return `claude-${uid}`
+  return `microcode-${uid}`
 }
 
 /**
- * Returns the Claude temp directory path with symlinks resolved.
+ * Returns the Microcode temp directory path with symlinks resolved.
  * Uses TMPDIR env var if set, otherwise:
  * - On Unix: /tmp/microcode-{uid}/ (resolved to /private/tmp/microcode-{uid}/ on macOS)
- * - On Windows: {tmpdir}/claude/ (e.g., C:\Users\{user}\AppData\Local\Temp\claude\)
+ * - On Windows: {tmpdir}/microcode/ (e.g., C:\Users\{user}\AppData\Local\Temp\microcode\)
  * This is a per-user temporary directory used by Microcode for all temp files.
  *
  * NOTE: We resolve symlinks to ensure this path matches the resolved paths used
@@ -453,7 +453,7 @@ function isDangerousFilePathToAutoEdit(path: string): boolean {
         continue
       }
 
-      // Special case: .microcode/worktrees/ is a structural path (where Claude stores
+      // Special case: .microcode/worktrees/ is a structural path (where Microcode stores
       // git worktrees), not a user-created dangerous directory. Skip the .microcode
       // segment when it's followed by 'worktrees'. Any nested .microcode directories
       // within the worktree (not followed by 'worktrees') are still blocked.
@@ -491,7 +491,7 @@ function isDangerousFilePathToAutoEdit(path: string): boolean {
  * Detects suspicious Windows path patterns that could bypass security checks.
  * These patterns include:
  * - NTFS Alternate Data Streams (e.g., file.txt::$DATA or file.txt:stream)
- * - 8.3 short names (e.g., GIT~1, CLAUDE~1, SETTIN~1.JSON)
+ * - 8.3 short names (e.g., GIT~1, MICROCODE~1, SETTIN~1.JSON)
  * - Long path prefixes (e.g., \\?\C:\..., \\.\C:\..., //?/C:/..., //./C:/...)
  * - Trailing dots and spaces (e.g., .git., .microcode , .bashrc...)
  * - DOS device names (e.g., .git.CON, settings.json.PRN, .bashrc.AUX)
@@ -552,7 +552,7 @@ function hasSuspiciousWindowsPathPattern(path: string): boolean {
 
   // Check for 8.3 short names
   // Look for '~' followed by a digit
-  // Examples: GIT~1, CLAUDE~1, SETTIN~1.JSON, BASHRC~1
+  // Examples: GIT~1, MICROCODE~1, SETTIN~1.JSON, BASHRC~1
   if (/~\d/.test(path)) {
     return true
   }
@@ -607,7 +607,7 @@ function hasSuspiciousWindowsPathPattern(path: string): boolean {
  *
  * This function performs comprehensive safety checks including:
  * - Suspicious Windows path patterns (NTFS streams, 8.3 names, long path prefixes, etc.)
- * - Claude config files (.microcode/settings.json, .microcode/commands/, .microcode/agents/)
+ * - Microcode config files (.microcode/settings.json, .microcode/commands/, .microcode/agents/)
  * - MCP CLI state files (managed internally by Microcode)
  * - Dangerous files (.bashrc, .gitconfig, .git/, .vscode/, .idea/, etc.)
  *
@@ -632,18 +632,18 @@ export function checkPathSafetyForAutoEdit(
     if (hasSuspiciousWindowsPathPattern(pathToCheck)) {
       return {
         safe: false,
-        message: `Claude requested permissions to write to ${path}, which contains a suspicious Windows path pattern that requires manual approval.`,
+        message: `Microcode requested permissions to write to ${path}, which contains a suspicious Windows path pattern that requires manual approval.`,
         classifierApprovable: false,
       }
     }
   }
 
-  // Check for Claude config files on all paths
+  // Check for Microcode config files on all paths
   for (const pathToCheck of pathsToCheck) {
-    if (isClaudeConfigFilePath(pathToCheck)) {
+    if (isMicrocodeConfigFilePath(pathToCheck)) {
       return {
         safe: false,
-        message: `Claude requested permissions to write to ${path}, but you haven't granted it yet.`,
+        message: `Microcode requested permissions to write to ${path}, but you haven't granted it yet.`,
         classifierApprovable: true,
       }
     }
@@ -654,7 +654,7 @@ export function checkPathSafetyForAutoEdit(
     if (isDangerousFilePathToAutoEdit(pathToCheck)) {
       return {
         safe: false,
-        message: `Claude requested permissions to edit ${path} which is a sensitive file.`,
+        message: `Microcode requested permissions to edit ${path} which is a sensitive file.`,
         classifierApprovable: true,
       }
     }
@@ -1035,7 +1035,7 @@ export function checkReadPermissionForTool(
   if (typeof tool.getPath !== 'function') {
     return {
       behavior: 'ask',
-      message: `Claude requested permissions to use ${tool.name}, but you haven't granted it yet.`,
+      message: `Microcode requested permissions to use ${tool.name}, but you haven't granted it yet.`,
     }
   }
   const path = tool.getPath(input)
@@ -1054,7 +1054,7 @@ export function checkReadPermissionForTool(
     if (pathToCheck.startsWith('\\\\') || pathToCheck.startsWith('//')) {
       return {
         behavior: 'ask',
-        message: `Claude requested permissions to read from ${path}, which appears to be a UNC path that could access network resources.`,
+        message: `Microcode requested permissions to read from ${path}, which appears to be a UNC path that could access network resources.`,
         decisionReason: {
           type: 'other',
           reason: 'UNC path detected (defense-in-depth check)',
@@ -1068,7 +1068,7 @@ export function checkReadPermissionForTool(
     if (hasSuspiciousWindowsPathPattern(pathToCheck)) {
       return {
         behavior: 'ask',
-        message: `Claude requested permissions to read from ${path}, which contains a suspicious Windows path pattern that requires manual approval.`,
+        message: `Microcode requested permissions to read from ${path}, which contains a suspicious Windows path pattern that requires manual approval.`,
         decisionReason: {
           type: 'other',
           reason:
@@ -1112,7 +1112,7 @@ export function checkReadPermissionForTool(
     if (askRule) {
       return {
         behavior: 'ask',
-        message: `Claude requested permissions to read from ${path}, but you haven't granted it yet.`,
+        message: `Microcode requested permissions to read from ${path}, but you haven't granted it yet.`,
         decisionReason: {
           type: 'rule',
           rule: askRule,
@@ -1179,7 +1179,7 @@ export function checkReadPermissionForTool(
   // At this point, isInWorkingDir is false (from step #6), so path is outside working directories
   return {
     behavior: 'ask',
-    message: `Claude requested permissions to read from ${path}, but you haven't granted it yet.`,
+    message: `Microcode requested permissions to read from ${path}, but you haven't granted it yet.`,
     suggestions: generateSuggestions(
       path,
       'read',
@@ -1211,7 +1211,7 @@ export function checkWritePermissionForTool<Input extends AnyObject>(
   if (typeof tool.getPath !== 'function') {
     return {
       behavior: 'ask',
-      message: `Claude requested permissions to use ${tool.name}, but you haven't granted it yet.`,
+      message: `Microcode requested permissions to use ${tool.name}, but you haven't granted it yet.`,
     }
   }
   const path = tool.getPath(input)
@@ -1255,10 +1255,10 @@ export function checkWritePermissionForTool<Input extends AnyObject>(
   // permanently granting broad access to their .microcode/ folder.
   //
   // matchingRuleForInput returns the first match across all sources. If the user
-  // also has a broader Edit(.claude) rule in userSettings (e.g. from sandbox
+  // also has a broader Edit(.microcode) rule in userSettings (e.g. from sandbox
   // write-allow conversion), that rule would be found first and its source check
   // below would fail. Scope the search to session-only rules so the dialog's
-  // "allow Claude to edit its own settings for this session" option actually works.
+  // "allow Microcode to edit its own settings for this session" option actually works.
   const microcodeFolderAllowRule = matchingRuleForInput(
     path,
     {
@@ -1299,7 +1299,7 @@ export function checkWritePermissionForTool<Input extends AnyObject>(
     }
   }
 
-  // 1.7. Check comprehensive safety validations (Windows patterns, Claude config, dangerous files)
+  // 1.7. Check comprehensive safety validations (Windows patterns, Microcode config, dangerous files)
   // This MUST come before checking allow rules to prevent users from accidentally granting
   // permission to edit protected files
   const safetyCheck = checkPathSafetyForAutoEdit(path, pathsToCheck)
@@ -1309,7 +1309,7 @@ export function checkWritePermissionForTool<Input extends AnyObject>(
     // Everything else (.microcode/settings.json, .git/, .vscode/, .idea/) falls
     // back to generateSuggestions — its setMode suggestion doesn't bypass
     // this check, but preserving it avoids a surprising empty array.
-    const skillScope = getClaudeSkillScope(path)
+    const skillScope = getMicrocodeSkillScope(path)
     const safetySuggestions: PermissionUpdate[] = skillScope
       ? [
           {
@@ -1348,7 +1348,7 @@ export function checkWritePermissionForTool<Input extends AnyObject>(
     if (askRule) {
       return {
         behavior: 'ask',
-        message: `Claude requested permissions to write to ${path}, but you haven't granted it yet.`,
+        message: `Microcode requested permissions to write to ${path}, but you haven't granted it yet.`,
         decisionReason: {
           type: 'rule',
           rule: askRule,
@@ -1395,7 +1395,7 @@ export function checkWritePermissionForTool<Input extends AnyObject>(
   // 5. Default to asking for permission
   return {
     behavior: 'ask',
-    message: `Claude requested permissions to write to ${path}, but you haven't granted it yet.`,
+    message: `Microcode requested permissions to write to ${path}, but you haven't granted it yet.`,
     suggestions: generateSuggestions(
       path,
       'write',
@@ -1564,7 +1564,7 @@ export function checkEditableInternalPath(
 
   // Memdir directory (persistent memory for cross-session learning)
   // This pre-safety-check carve-out exists because the default path is under
-  // ~/.microcode/, which is in DANGEROUS_DIRECTORIES. The CLAUDE_COWORK_MEMORY_PATH_OVERRIDE
+  // ~/.microcode/, which is in DANGEROUS_DIRECTORIES. The MICROCODE_COWORK_MEMORY_PATH_OVERRIDE
   // override is an arbitrary caller-designated directory with no such conflict,
   // so it gets NO special permission treatment here — writes go through normal
   // permission flow (step 5 → ask). SDK callers who want silent memory should
@@ -1581,7 +1581,7 @@ export function checkEditableInternalPath(
   }
 
   // .microcode/launch.json — desktop preview config (dev server command + port).
-  // The desktop's preview_start MCP tool instructs Claude to create/update
+  // The desktop's preview_start MCP tool instructs Microcode to create/update
   // this file as part of the preview workflow. Without this carve-out the
   // .microcode/ DANGEROUS_DIRECTORIES check prompts for it, which in SDK mode
   // cascades: user clicks "Always allow" → setMode:acceptEdits suggestion

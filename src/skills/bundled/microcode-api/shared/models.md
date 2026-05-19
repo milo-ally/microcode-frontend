@@ -1,6 +1,6 @@
 # Models
 
-Use this note when the user asks which Claude model to choose or how model naming works.
+Use this note when the user asks which Microcode model to choose or how model naming works.
 
 ## Selection Heuristic
 

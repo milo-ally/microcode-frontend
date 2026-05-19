@@ -5,7 +5,7 @@ import {
   statusListeners,
 } from './microcodeAiLimits.js'
 
-export function useClaudeAiLimits(): MicrocodeAILimits {
+export function useMicrocodeAiLimits(): MicrocodeAILimits {
   const [limits, setLimits] = useState<MicrocodeAILimits>({ ...currentLimits })
 
   useEffect(() => {

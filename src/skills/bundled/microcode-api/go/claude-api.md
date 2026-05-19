@@ -1,4 +1,4 @@
-# Go Claude API
+# Go Microcode API
 
 Go works well with the raw Messages API using `net/http`.
 

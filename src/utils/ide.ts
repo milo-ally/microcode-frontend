@@ -460,10 +460,10 @@ const getWindowsUserProfile = memoize(async (): Promise<string | undefined> => {
  * stat loop compounded startup latency.
  */
 export async function getIdeLockfilesPaths(): Promise<string[]> {
-  // Look in both ~/.microcode/ide/ (renamed path) and ~/.claude/ide/ (original VS Code extension path)
+  // Look in both ~/.microcode/ide/ (renamed path) and ~/.microcode/ide/ (original VS Code extension path)
   const paths: string[] = [
     join(getMicrocodeConfigHomeDir(), 'ide'),
-    join(os.homedir(), '.claude', 'ide'),
+    join(os.homedir(), '.microcode', 'ide'),
   ]
 
   if (getPlatform() !== 'wsl') {
@@ -850,8 +850,8 @@ export function hasAccessToIDEExtensionDiffFeature(
 
 const EXTENSION_ID =
   process.env.USER_TYPE === 'ant'
-    ? 'anthropic.claude-code-internal'
-    : 'anthropic.claude-code'
+    ? 'anthropic.microcode-code-internal'
+    : 'anthropic.microcode-code'
 
 export async function isIDEExtensionInstalled(
   ideType: IdeType,
@@ -890,12 +890,12 @@ async function installIDEExtension(ideType: IdeType): Promise<string | null> {
       }
       let version = await getInstalledVSCodeExtensionVersion(command)
       // If it's not installed or the version is older than the one we have bundled,
-      if (!version || lt(version, getClaudeCodeVersion())) {
+      if (!version || lt(version, getMicroCodeVersion())) {
         // `code` may crash when invoked too quickly in succession
         await sleep(500)
         const result = await execFileNoThrowWithCwd(
           command,
-          ['--force', '--install-extension', 'anthropic.claude-code'],
+          ['--force', '--install-extension', 'anthropic.microcode-code'],
           {
             env: getInstallationEnv(),
           },
@@ -903,7 +903,7 @@ async function installIDEExtension(ideType: IdeType): Promise<string | null> {
         if (result.code !== 0) {
           throw new Error(`${result.code}: ${result.error} ${result.stderr}`)
         }
-        version = getClaudeCodeVersion()
+        version = getMicroCodeVersion()
       }
       return version
     }
@@ -928,7 +928,7 @@ function getInstallationEnv(): NodeJS.ProcessEnv | undefined {
   return undefined
 }
 
-function getClaudeCodeVersion() {
+function getMicroCodeVersion() {
   return MACRO.VERSION
 }
 
@@ -945,7 +945,7 @@ async function getInstalledVSCodeExtensionVersion(
   const lines = stdout?.split('\n') || []
   for (const line of lines) {
     const [extensionId, version] = line.split('@')
-    if (extensionId === 'anthropic.claude-code' && version) {
+    if (extensionId === 'anthropic.microcode-code' && version) {
       return version
     }
   }

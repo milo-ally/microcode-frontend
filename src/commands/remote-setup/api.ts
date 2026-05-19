@@ -167,7 +167,7 @@ export async function createDefaultEnvironment(): Promise<boolean> {
   }
 }
 
-/** Returns true when the user has valid Claude OAuth credentials. */
+/** Returns true when the user has valid Microcode OAuth credentials. */
 export async function isSignedIn(): Promise<boolean> {
   try {
     await prepareApiRequest()
@@ -178,5 +178,5 @@ export async function isSignedIn(): Promise<boolean> {
 }
 
 export function getCodeWebUrl(): string {
-  return `${getOauthConfig().CLAUDE_AI_ORIGIN}/code`
+  return `${getOauthConfig().MICROCODE_AI_ORIGIN}/code`
 }

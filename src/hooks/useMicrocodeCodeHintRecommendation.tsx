@@ -17,11 +17,11 @@ import { logForDebugging } from '../utils/debug.js';
 import { disableHintRecommendations, markHintPluginShown, type PluginHintRecommendation, resolvePluginHint } from '../utils/plugins/hintRecommendation.js';
 import { installPluginFromMarketplace } from '../utils/plugins/pluginInstallationHelpers.js';
 import { installPluginAndNotify, usePluginRecommendationBase } from './usePluginRecommendationBase.js';
-type UseClaudeCodeHintRecommendationResult = {
+type UseMicroCodeHintRecommendationResult = {
   recommendation: PluginHintRecommendation | null;
   handleResponse: (response: 'yes' | 'no' | 'disable') => void;
 };
-export function useMicrocodeCodeHintRecommendation() {
+export function useMicroCodeHintRecommendation() {
   const $ = _c(11);
   const pendingHint = React.useSyncExternalStore(subscribeToPendingHint, getPendingHintSnapshot);
   const {
@@ -42,7 +42,7 @@ export function useMicrocodeCodeHintRecommendation() {
       tryResolve(async () => {
         const resolved = await resolvePluginHint(pendingHint);
         if (resolved) {
-          logForDebugging(`[useMicrocodeCodeHintRecommendation] surfacing ${resolved.pluginId} from ${resolved.sourceCommand}`);
+          logForDebugging(`[useMicroCodeHintRecommendation] surfacing ${resolved.pluginId} from ${resolved.sourceCommand}`);
           markShownThisSession();
         }
         if (getPendingHintSnapshot() === pendingHint) {

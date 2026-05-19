@@ -538,7 +538,7 @@ export async function initBridgeCore(
   // Adapter over either HybridTransport (v1: WS reads + POST writes to
   // Session-Ingress) or SSETransport+CCRClient (v2: SSE reads + POST
   // writes to CCR /worker/*). The v1/v2 choice is made in onWorkReceived:
-  // server-driven via secret.use_code_sessions, with CLAUDE_BRIDGE_USE_CCR_V2
+  // server-driven via secret.use_code_sessions, with MICROCODE_BRIDGE_USE_CCR_V2
   // as an ant-dev override.
   let transport: ReplBridgeTransport | null = null
   // Bumped on every onWorkReceived. Captured in createV2ReplTransport's .then()

@@ -8,7 +8,7 @@ import {
   getSubscriptionType,
   isOverageProvisioningAllowed,
 } from '../utils/auth.js'
-import { hasClaudeAiBillingAccess } from '../utils/billing.js'
+import { hasMicrocodeAiBillingAccess } from '../utils/billing.js'
 import { formatResetTime } from '../utils/format.js'
 import type { MicrocodeAILimits } from './microcodeAiLimits.js'
 
@@ -88,7 +88,7 @@ export function getRateLimitMessage(
     if (
       isTeamOrEnterprise &&
       hasExtraUsageEnabled &&
-      !hasClaudeAiBillingAccess()
+      !hasMicrocodeAiBillingAccess()
     ) {
       return null
     }

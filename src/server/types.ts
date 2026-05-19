@@ -46,7 +46,7 @@ export type SessionInfo = {
 export type SessionIndexEntry = {
   /** Server-assigned session ID (matches the subprocess's microcode session). */
   sessionId: string
-  /** The claude transcript session ID for --resume. Same as sessionId for direct sessions. */
+  /** The microcode transcript session ID for --resume. Same as sessionId for direct sessions. */
   transcriptSessionId: string
   cwd: string
   permissionMode?: string

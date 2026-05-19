@@ -3522,7 +3522,7 @@ function runHeadlessStreaming(
           // both URLs and wait. Automatic URL → localhost listener catches
           // the redirect if the browser is on this host; manual URL → the
           // success page shows "code#state" for claude_oauth_callback.
-          const { loginWithClaudeAi } = message.request
+          const { loginWithMicrocodeAi } = message.request
 
           // Clean up any prior flow. cleanup() closes the localhost listener
           // and nulls the manual resolver. The prior `flow` promise is left
@@ -3532,7 +3532,7 @@ function runHeadlessStreaming(
           claudeOAuth?.service.cleanup()
 
           logEvent('tengu_oauth_flow_start', {
-            loginWithClaudeAi: loginWithClaudeAi ?? true,
+            loginWithMicrocodeAi: loginWithMicrocodeAi ?? true,
           })
 
           const service = new OAuthService()
@@ -3555,7 +3555,7 @@ function runHeadlessStreaming(
                 urlResolver({ manualUrl, automaticUrl: automaticUrl! })
               },
               {
-                loginWithClaudeAi: loginWithClaudeAi ?? true,
+                loginWithMicrocodeAi: loginWithMicrocodeAi ?? true,
                 skipBrowserOpen: true,
               },
             )
@@ -3563,11 +3563,11 @@ function runHeadlessStreaming(
               // installOAuthTokens: performLogout (clear stale state) →
               // store profile → saveOAuthTokensIfNeeded → clearOAuthTokenCache
               // → clearAuthRelatedCaches. After this resolves, the memoized
-              // getClaudeAIOAuthTokens in this process is invalidated; the
+              // getMicrocodeAIOAuthTokens in this process is invalidated; the
               // next API call re-reads keychain/file and works. No respawn.
               await installOAuthTokens(tokens)
               logEvent('tengu_oauth_success', {
-                loginWithClaudeAi: loginWithClaudeAi ?? true,
+                loginWithMicrocodeAi: loginWithMicrocodeAi ?? true,
               })
             })
             .finally(() => {

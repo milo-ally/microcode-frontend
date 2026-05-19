@@ -5,11 +5,11 @@ import { type OptionWithDescription, Select } from '../../components/CustomSelec
 import { Dialog } from '../../components/design-system/Dialog.js';
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/growthbook.js';
 import { logEvent } from '../../services/analytics/index.js';
-import { useClaudeAiLimits } from '../../services/microcodeAiLimitsHook.js';
+import { useMicrocodeAiLimits } from '../../services/microcodeAiLimitsHook.js';
 import type { ToolUseContext } from '../../Tool.js';
 import type { LocalJSXCommandOnDone } from '../../types/command.js';
 import { getOauthAccountInfo, getRateLimitTier, getSubscriptionType } from '../../utils/auth.js';
-import { hasClaudeAiBillingAccess } from '../../utils/billing.js';
+import { hasMicrocodeAiBillingAccess } from '../../utils/billing.js';
 import { call as extraUsageCall } from '../extra-usage/extra-usage.js';
 import { extraUsage } from '../extra-usage/index.js';
 import upgrade from '../upgrade/index.js';
@@ -28,7 +28,7 @@ function RateLimitOptionsMenu(t0) {
     context
   } = t0;
   const [subCommandJSX, setSubCommandJSX] = useState(null);
-  const claudeAiLimits = useClaudeAiLimits();
+  const claudeAiLimits = useMicrocodeAiLimits();
   let t1;
   if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
     t1 = getSubscriptionType();
@@ -56,7 +56,7 @@ function RateLimitOptionsMenu(t0) {
     if ($[2] !== claudeAiLimits.overageDisabledReason || $[3] !== claudeAiLimits.overageStatus) {
       actionOptions = [];
       if (extraUsage.isEnabled()) {
-        const hasBillingAccess = hasClaudeAiBillingAccess();
+        const hasBillingAccess = hasMicrocodeAiBillingAccess();
         const needsToRequestFromAdmin = isTeamOrEnterprise && !hasBillingAccess;
         const isOrgSpendCapDepleted = claudeAiLimits.overageDisabledReason === "out_of_credits" || claudeAiLimits.overageDisabledReason === "org_level_disabled_until" || claudeAiLimits.overageDisabledReason === "org_service_zero_credit_limit";
         if (needsToRequestFromAdmin && isOrgSpendCapDepleted) {} else {

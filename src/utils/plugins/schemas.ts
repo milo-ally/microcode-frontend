@@ -13,7 +13,7 @@ import { lazySchema } from '../lazySchema.js'
  */
 
 /**
- * Official marketplace names that are reserved for Anthropic/Claude official use.
+ * Official marketplace names that are reserved for Anthropic/Microcode official use.
  * These names are allowed ONLY for official marketplaces and blocked for third parties.
  */
 export const ALLOWED_OFFICIAL_MARKETPLACE_NAMES = new Set([
@@ -22,9 +22,9 @@ export const ALLOWED_OFFICIAL_MARKETPLACE_NAMES = new Set([
   'microcode-plugins-official',
   'anthropic-marketplace',
   'anthropic-plugins',
-  'claude-marketplace',
-  'claude-plugins',
-  'claude-plugins-official',
+  'microcode-marketplace',
+  'microcode-plugins',
+  'microcode-plugins-official',
   'agent-skills',
   'life-sciences',
   'knowledge-work-plugins',
@@ -61,7 +61,7 @@ export function isMarketplaceAutoUpdate(
 }
 
 /**
- * Pattern to detect names that impersonate official Anthropic/Claude marketplaces.
+ * Pattern to detect names that impersonate official Anthropic/Microcode marketplaces.
  *
  * Matches names containing variations like:
  * - "official" combined with "anthropic" or "microcode" (e.g., "official-microcode-plugins")
@@ -72,7 +72,7 @@ export function isMarketplaceAutoUpdate(
  * The pattern is case-insensitive.
  */
 export const BLOCKED_OFFICIAL_NAME_PATTERN =
-  /(?:official[^a-z0-9]*(anthropic|claude)|(?:anthropic|claude)[^a-z0-9]*official|^(?:anthropic|claude)[^a-z0-9]*(marketplace|plugins|official))/i
+  /(?:official[^a-z0-9]*(anthropic|microcode)|(?:anthropic|claude)[^a-z0-9]*official|^(?:anthropic|claude)[^a-z0-9]*(marketplace|plugins|official))/i
 
 /**
  * Pattern to detect non-ASCII characters that could be used for homograph attacks.
@@ -82,7 +82,7 @@ export const BLOCKED_OFFICIAL_NAME_PATTERN =
 const NON_ASCII_PATTERN = /[^\u0020-\u007E]/
 
 /**
- * Check if a marketplace name impersonates an official Anthropic/Claude marketplace.
+ * Check if a marketplace name impersonates an official Anthropic/Microcode marketplace.
  *
  * @param name - The marketplace name to check
  * @returns true if the name is blocked (impersonates official), false if allowed
@@ -237,7 +237,7 @@ const MarketplaceNameSchema = lazySchema(() =>
     )
     .refine(name => !isBlockedOfficialName(name), {
       message:
-        'Marketplace name impersonates an official Anthropic/Claude marketplace',
+        'Marketplace name impersonates an official Anthropic/Microcode marketplace',
     })
     .refine(name => name.toLowerCase() !== 'inline', {
       message:
@@ -640,7 +640,7 @@ const PluginManifestUserConfigSchema = lazySchema(() =>
           .string()
           .regex(
             /^[A-Za-z_]\w*$/,
-            'Option keys must be valid identifiers (letters, digits, underscore; no leading digit) — they become CLAUDE_PLUGIN_OPTION_<KEY> env vars in hooks',
+            'Option keys must be valid identifiers (letters, digits, underscore; no leading digit) — they become MICROCODE_PLUGIN_OPTION_<KEY> env vars in hooks',
           ),
         PluginUserConfigOptionSchema(),
       )

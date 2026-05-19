@@ -1,6 +1,6 @@
 # Python Tool Use
 
-Tool use lets Claude decide when to request a tool, emit a `tool_use` block, and continue after you return a matching `tool_result`.
+Tool use lets Microcode decide when to request a tool, emit a `tool_use` block, and continue after you return a matching `tool_result`.
 
 ## Define tools
 

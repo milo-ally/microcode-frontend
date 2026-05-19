@@ -13,10 +13,10 @@ Use WebFetch or browsing when the answer depends on changing Anthropic documenta
 ## Preferred Official Sources
 
 - Main docs hub: `https://docs.anthropic.com/`
-- Models overview: `https://docs.anthropic.com/en/docs/about-claude/models/all-models`
-- Features overview: `https://docs.anthropic.com/en/docs/build-with-claude/overview`
-- Tool use: `https://docs.anthropic.com/en/docs/build-with-claude/tool-use`
-- Prompt caching: `https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching`
+- Models overview: `https://docs.anthropic.com/en/docs/about-microcode/models/all-models`
+- Features overview: `https://docs.anthropic.com/en/docs/build-with-microcode/overview`
+- Tool use: `https://docs.anthropic.com/en/docs/build-with-microcode/tool-use`
+- Prompt caching: `https://docs.anthropic.com/en/docs/build-with-microcode/prompt-caching`
 - API reference: `https://docs.anthropic.com/en/api/`
 - Anthropic SDK repositories: Anthropic GitHub org repos for language-specific SDK examples
 

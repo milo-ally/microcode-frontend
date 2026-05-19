@@ -125,7 +125,7 @@ export function applySafeConfigEnvironmentVariables(): void {
   // Capture CCD spawn-env keys before any settings.env is applied (once).
   if (ccdSpawnEnvKeys === undefined) {
     ccdSpawnEnvKeys =
-      process.env.MICROCODE_ENTRYPOINT === 'claude-desktop'
+      process.env.MICROCODE_ENTRYPOINT === 'microcode-desktop'
         ? new Set(Object.keys(process.env))
         : null
   }

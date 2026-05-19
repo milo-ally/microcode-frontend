@@ -1,6 +1,6 @@
 /**
  * Shared bridge auth/URL resolution. Consolidates the ant-only
- * CLAUDE_BRIDGE_* dev overrides that were previously copy-pasted across
+ * MICROCODE_BRIDGE_* dev overrides that were previously copy-pasted across
  * a dozen files — inboundAttachments, BriefTool/upload, bridgeMain,
  * initReplBridge, remoteBridgeCore, daemon workers, /rename,
  * /remote-control.
@@ -12,9 +12,9 @@
  */
 
 import { getOauthConfig } from '../constants/oauth.js'
-import { getClaudeAIOAuthTokens } from '../utils/auth.js'
+import { getMicrocodeAIOAuthTokens } from '../utils/auth.js'
 
-/** Ant-only dev override: CLAUDE_BRIDGE_OAUTH_TOKEN, else undefined. */
+/** Ant-only dev override: MICROCODE_BRIDGE_OAUTH_TOKEN, else undefined. */
 export function getBridgeTokenOverride(): string | undefined {
   return (
     (process.env.USER_TYPE === 'ant' &&
@@ -23,7 +23,7 @@ export function getBridgeTokenOverride(): string | undefined {
   )
 }
 
-/** Ant-only dev override: CLAUDE_BRIDGE_BASE_URL, else undefined. */
+/** Ant-only dev override: MICROCODE_BRIDGE_BASE_URL, else undefined. */
 export function getBridgeBaseUrlOverride(): string | undefined {
   return (
     (process.env.USER_TYPE === 'ant' && process.env.MICROCODE_BRIDGE_BASE_URL) ||
@@ -36,7 +36,7 @@ export function getBridgeBaseUrlOverride(): string | undefined {
  * keychain. Undefined means "not logged in".
  */
 export function getBridgeAccessToken(): string | undefined {
-  return getBridgeTokenOverride() ?? getClaudeAIOAuthTokens()?.accessToken
+  return getBridgeTokenOverride() ?? getMicrocodeAIOAuthTokens()?.accessToken
 }
 
 /**

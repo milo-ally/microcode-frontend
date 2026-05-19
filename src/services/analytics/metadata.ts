@@ -21,7 +21,7 @@ import {
 } from '../../bootstrap/state.js'
 import { isEnvTruthy } from '../../utils/envUtils.js'
 import { isOfficialMcpUrl } from '../mcp/officialRegistry.js'
-import { isClaudeAISubscriber, getSubscriptionType } from '../../utils/auth.js'
+import { isMicrocodeAISubscriber, getSubscriptionType } from '../../utils/auth.js'
 import { getRepoRemoteHash } from '../../utils/git.js'
 import {
   getWslVersion,
@@ -106,7 +106,7 @@ export function isAnalyticsToolDetailsLoggingEnabled(
   if (process.env.MICROCODE_ENTRYPOINT === 'local-agent') {
     return true
   }
-  if (mcpServerType === 'claudeai-proxy') {
+  if (mcpServerType === 'microcodeai-proxy') {
     return true
   }
   if (mcpServerBaseUrl && isOfficialMcpUrl(mcpServerBaseUrl)) {
@@ -425,17 +425,17 @@ export type EnvContext = {
   isRunningWithBun: boolean
   isCi: boolean
   isClaubbit: boolean
-  isClaudeCodeRemote: boolean
+  isMicroCodeRemote: boolean
   isLocalAgentMode: boolean
   isConductor: boolean
   remoteEnvironmentType?: string
   coworkerType?: string
-  microcodeCodeContainerId?: string
-  microcodeCodeRemoteSessionId?: string
+  MicroCodeContainerId?: string
+  MicroCodeRemoteSessionId?: string
   tags?: string
   isGithubAction: boolean
-  isClaudeCodeAction: boolean
-  isClaudeAiAuth: boolean
+  isMicroCodeAction: boolean
+  isMicrocodeAiAuth: boolean
   version: string
   versionBase?: string
   buildTime: string
@@ -593,7 +593,7 @@ const buildEnvContext = memoize(async (): Promise<EnvContext> => {
     isRunningWithBun: env.isRunningWithBun(),
     isCi: isEnvTruthy(process.env.CI),
     isClaubbit: isEnvTruthy(process.env.CLAUBBIT),
-    isClaudeCodeRemote: isEnvTruthy(process.env.MICROCODE_REMOTE),
+    isMicroCodeRemote: isEnvTruthy(process.env.MICROCODE_REMOTE),
     isLocalAgentMode: process.env.MICROCODE_ENTRYPOINT === 'local-agent',
     isConductor: env.isConductor(),
     ...(process.env.MICROCODE_REMOTE_ENVIRONMENT_TYPE && {
@@ -606,17 +606,17 @@ const buildEnvContext = memoize(async (): Promise<EnvContext> => {
         : {}
       : {}),
     ...(process.env.MICROCODE_CONTAINER_ID && {
-      microcodeCodeContainerId: process.env.MICROCODE_CONTAINER_ID,
+      MicroCodeContainerId: process.env.MICROCODE_CONTAINER_ID,
     }),
     ...(process.env.MICROCODE_REMOTE_SESSION_ID && {
-      microcodeCodeRemoteSessionId: process.env.MICROCODE_REMOTE_SESSION_ID,
+      MicroCodeRemoteSessionId: process.env.MICROCODE_REMOTE_SESSION_ID,
     }),
     ...(process.env.MICROCODE_TAGS && {
       tags: process.env.MICROCODE_TAGS,
     }),
     isGithubAction: isEnvTruthy(process.env.GITHUB_ACTIONS),
-    isClaudeCodeAction: isEnvTruthy(process.env.MICROCODE_ACTION),
-    isClaudeAiAuth: isClaudeAISubscriber(),
+    isMicroCodeAction: isEnvTruthy(process.env.MICROCODE_ACTION),
+    isMicrocodeAiAuth: isMicrocodeAISubscriber(),
     version: MACRO.VERSION,
     versionBase: getVersionBase(),
     buildTime: MACRO.BUILD_TIME,
@@ -771,14 +771,14 @@ export type FirstPartyEventLoggingCoreMetadata = {
 export type FirstPartyEventLoggingMetadata = {
   env: EnvironmentMetadata
   process?: string
-  // auth is a top-level field on ClaudeCodeInternalEvent (proto PublicApiAuth).
+  // auth is a top-level field on MicroCodeInternalEvent (proto PublicApiAuth).
   // account_id is intentionally omitted — only UUID fields are populated client-side.
   auth?: PublicApiAuth
-  // core fields correspond to the top level of ClaudeCodeInternalEvent.
+  // core fields correspond to the top level of MicroCodeInternalEvent.
   // They get directly exported to their individual columns in the BigQuery tables
   core: FirstPartyEventLoggingCoreMetadata
   // additional fields are populated in the additional_metadata field of the
-  // MicrocodeCodeInternalEvent proto. Includes but is not limited to information
+  // MicroCodeInternalEvent proto. Includes but is not limited to information
   // that differs by event type.
   additional: Record<string, unknown>
 }
@@ -828,12 +828,12 @@ export function to1PEventFormat(
     is_running_with_bun: envContext.isRunningWithBun,
     is_ci: envContext.isCi,
     is_claubbit: envContext.isClaubbit,
-    is_claude_code_remote: envContext.isClaudeCodeRemote,
+    is_microcode_code_remote: envContext.isMicroCodeRemote,
     is_local_agent_mode: envContext.isLocalAgentMode,
     is_conductor: envContext.isConductor,
     is_github_action: envContext.isGithubAction,
-    is_claude_code_action: envContext.isClaudeCodeAction,
-    is_microcode_ai_auth: envContext.isClaudeAiAuth,
+    is_microcode_code_action: envContext.isMicroCodeAction,
+    is_microcode_ai_auth: envContext.isMicrocodeAiAuth,
     version: envContext.version,
     build_time: envContext.buildTime,
     deployment_environment: envContext.deploymentEnvironment,
@@ -846,11 +846,11 @@ export function to1PEventFormat(
   if (feature('COWORKER_TYPE_TELEMETRY') && envContext.coworkerType) {
     env.coworker_type = envContext.coworkerType
   }
-  if (envContext.microcodeCodeContainerId) {
-    env.claude_code_container_id = envContext.microcodeCodeContainerId
+  if (envContext.MicroCodeContainerId) {
+    env.microcode_code_container_id = envContext.MicroCodeContainerId
   }
-  if (envContext.microcodeCodeRemoteSessionId) {
-    env.claude_code_remote_session_id = envContext.microcodeCodeRemoteSessionId
+  if (envContext.MicroCodeRemoteSessionId) {
+    env.microcode_code_remote_session_id = envContext.MicroCodeRemoteSessionId
   }
   if (envContext.tags) {
     env.tags = envContext.tags
@@ -934,10 +934,10 @@ export function to1PEventFormat(
 
   // Map userMetadata to output fields.
   // Based on src/utils/user.ts getUser(), but with fields present in other
-  // parts of ClaudeCodeInternalEvent deduplicated.
+  // parts of MicroCodeInternalEvent deduplicated.
   // Convert camelCase GitHubActionsMetadata to snake_case for 1P API
   // Note: github_actions_metadata is placed inside env (EnvironmentMetadata)
-  // rather than at the top level of ClaudeCodeInternalEvent
+  // rather than at the top level of MicroCodeInternalEvent
   if (userMetadata.githubActionsMetadata) {
     const ghMeta = userMetadata.githubActionsMetadata
     env.github_actions_metadata = {

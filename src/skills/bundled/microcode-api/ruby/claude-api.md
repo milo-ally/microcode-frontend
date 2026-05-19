@@ -1,4 +1,4 @@
-# Ruby Claude API
+# Ruby Microcode API
 
 Ruby can call the Messages API directly with `Net::HTTP`.
 

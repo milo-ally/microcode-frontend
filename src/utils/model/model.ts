@@ -8,7 +8,7 @@
 import { getMainLoopModelOverride } from '../../bootstrap/state.js'
 import {
   getSubscriptionType,
-  isClaudeAISubscriber,
+  isMicrocodeAISubscriber,
   isMaxSubscriber,
   isProSubscriber,
   isTeamPremiumSubscriber,
@@ -232,13 +232,13 @@ export function getDefaultMainLoopModel(): ModelName {
 // @[MODEL LAUNCH]: Add a canonical name mapping for the new model below.
 /**
  * Pure string-match that strips date/provider suffixes from a first-party model
- * name. Input must already be a 1P-format ID (e.g. 'microcode-3-7-sonnet-20250219',
+ * name. Input must already be a 1P-format ID (e.g. 'claude-3-7-sonnet-20250219',
  * 'us.anthropic.claude-opus-4-6-v1:0'). Does not touch settings, so safe at
  * module top-level (see MODEL_COSTS in modelCost.ts).
  */
 export function firstPartyNameToCanonical(name: ModelName): ModelShortName {
   name = name.toLowerCase()
-  // Special cases for Claude 4+ models to differentiate versions
+  // Special cases for claude 4+ models to differentiate versions
   // Order matters: check more specific versions first (4-5 before 4)
   if (name.includes('claude-opus-4-6')) {
     return 'claude-opus-4-6'
@@ -264,24 +264,24 @@ export function firstPartyNameToCanonical(name: ModelName): ModelShortName {
   if (name.includes('claude-haiku-4-5')) {
     return 'claude-haiku-4-5'
   }
-  // Microcode 3.x models use a different naming scheme (microcode-3-{family})
-  if (name.includes('microcode-3-7-sonnet')) {
-    return 'microcode-3-7-sonnet'
+  // claude 3.x models use a different naming scheme (claude-3-{family})
+  if (name.includes('claude-3-7-sonnet')) {
+    return 'claude-3-7-sonnet'
   }
-  if (name.includes('microcode-3-5-sonnet')) {
-    return 'microcode-3-5-sonnet'
+  if (name.includes('claude-3-5-sonnet')) {
+    return 'claude-3-5-sonnet'
   }
-  if (name.includes('microcode-3-5-haiku')) {
-    return 'microcode-3-5-haiku'
+  if (name.includes('claude-3-5-haiku')) {
+    return 'claude-3-5-haiku'
   }
-  if (name.includes('microcode-3-opus')) {
-    return 'microcode-3-opus'
+  if (name.includes('claude-3-opus')) {
+    return 'claude-3-opus'
   }
-  if (name.includes('microcode-3-sonnet')) {
-    return 'microcode-3-sonnet'
+  if (name.includes('claude-3-sonnet')) {
+    return 'claude-3-sonnet'
   }
-  if (name.includes('microcode-3-haiku')) {
-    return 'microcode-3-haiku'
+  if (name.includes('claude-3-haiku')) {
+    return 'claude-3-haiku'
   }
   const match = name.match(/(claude-(\d+-\d+-)?\w+)/)
   if (match && match[1]) {
@@ -293,10 +293,10 @@ export function firstPartyNameToCanonical(name: ModelName): ModelShortName {
 
 /**
  * Maps a full model string to a shorter canonical version that's unified across 1P and 3P providers.
- * For example, 'microcode-3-5-haiku-20241022' and 'us.anthropic.microcode-3-5-haiku-20241022-v1:0'
- * would both be mapped to 'microcode-3-5-haiku'.
- * @param fullModelName The full model name (e.g., 'microcode-3-5-haiku-20241022')
- * @returns The short name (e.g., 'microcode-3-5-haiku') if found, or the original name if no mapping exists
+ * For example, 'claude-3-5-haiku-20241022' and 'us.anthropic.claude-3-5-haiku-20241022-v1:0'
+ * would both be mapped to 'claude-3-5-haiku'.
+ * @param fullModelName The full model name (e.g., 'claude-3-5-haiku-20241022')
+ * @returns The short name (e.g., 'claude-3-5-haiku') if found, or the original name if no mapping exists
  */
 export function getCanonicalName(fullModelName: ModelName): ModelShortName {
   // Resolve overridden model IDs (e.g. Bedrock ARNs) back to canonical names.
@@ -305,7 +305,7 @@ export function getCanonicalName(fullModelName: ModelName): ModelShortName {
 }
 
 // @[MODEL LAUNCH]: Update the default model description strings shown to users.
-export function getClaudeAiUserDefaultModelDescription(
+export function getMicrocodeAiUserDefaultModelDescription(
   fastMode = false,
 ): string {
   if (isMaxSubscriber() || isTeamPremiumSubscriber()) {
@@ -347,7 +347,7 @@ export function isOpus1mMergeEnabled(): boolean {
   // isProSubscriber() returns false for such users and the merge leaks
   // opus[1m] into the model dropdown — the API then rejects it with a
   // misleading "rate limit reached" error.
-  if (isClaudeAISubscriber() && getSubscriptionType() === null) {
+  if (isMicrocodeAISubscriber() && getSubscriptionType() === null) {
     return false
   }
   return true
@@ -438,18 +438,18 @@ export function renderModelName(model: ModelName): string {
 
 /**
  * Returns a safe author name for public display (e.g., in git commit trailers).
- * Returns "Claude {ModelName}" for publicly known models, or "Claude ({model})"
+ * Returns "claude {ModelName}" for publicly known models, or "claude ({model})"
  * for unknown/internal models so the exact model name is preserved.
  *
  * @param model The full model name
- * @returns "Claude {ModelName}" for public models, or "Claude ({model})" for non-public models
+ * @returns "claude {ModelName}" for public models, or "claude ({model})" for non-public models
  */
 export function getPublicModelName(model: ModelName): string {
   const publicName = getPublicModelDisplayName(model)
   if (publicName) {
-    return `Claude ${publicName}`
+    return `claude ${publicName}`
   }
-  return `Claude (${model})`
+  return `claude (${model})`
 }
 
 /**
@@ -492,7 +492,7 @@ export function parseUserSpecifiedModel(
   }
 
   // Opus 4/4.1 are no longer available on the first-party API (same as
-  // Microcode.ai) — silently remap to the current Opus default. The 'opus'
+  // claude.ai) — silently remap to the current Opus default. The 'opus'
   // alias already resolves to 4.6, so the only users on these explicit
   // strings pinned them in settings/env/--model/SDK before 4.5 launched.
   // 3P providers may not yet have 4.6 capacity, so pass through unchanged.
@@ -572,15 +572,15 @@ function isLegacyOpusFirstParty(model: string): boolean {
  * Opt-out for the legacy Opus 4.0/4.1 → current Opus remap.
  */
 export function isLegacyModelRemapEnabled(): boolean {
-  return !isEnvTruthy(process.env.MICROCODE_DISABLE_LEGACY_MODEL_REMAP)
+  return !isEnvTruthy(process.env.claude_DISABLE_LEGACY_MODEL_REMAP)
 }
 
 export function modelDisplayString(model: ModelSetting): string {
   if (model === null) {
     if (process.env.USER_TYPE === 'ant') {
       return `Default for Ants (${renderDefaultModelSetting(getDefaultMainLoopModelSetting())})`
-    } else if (isClaudeAISubscriber()) {
-      return `Default (${getClaudeAiUserDefaultModelDescription()})`
+    } else if (isMicrocodeAISubscriber()) {
+      return `Default (${getMicrocodeAiUserDefaultModelDescription()})`
     }
     return `Default (${getDefaultMainLoopModel()})`
   }
@@ -619,17 +619,17 @@ export function getMarketingNameForModel(modelId: string): string | undefined {
   if (canonical.includes('claude-sonnet-4')) {
     return has1m ? 'Sonnet 4 (with 1M context)' : 'Sonnet 4'
   }
-  if (canonical.includes('microcode-3-7-sonnet')) {
-    return 'Claude 3.7 Sonnet'
+  if (canonical.includes('claude-3-7-sonnet')) {
+    return 'claude 3.7 Sonnet'
   }
-  if (canonical.includes('microcode-3-5-sonnet')) {
-    return 'Claude 3.5 Sonnet'
+  if (canonical.includes('claude-3-5-sonnet')) {
+    return 'claude 3.5 Sonnet'
   }
   if (canonical.includes('claude-haiku-4-5')) {
     return 'Haiku 4.5'
   }
-  if (canonical.includes('microcode-3-5-haiku')) {
-    return 'Claude 3.5 Haiku'
+  if (canonical.includes('claude-3-5-haiku')) {
+    return 'claude 3.5 Haiku'
   }
 
   return undefined

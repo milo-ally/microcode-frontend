@@ -54,11 +54,11 @@ type ProviderSelectionFlowProps = {
 function getProviderDescription(provider: ResolvedProviderConfig): string {
   switch (provider.type) {
     case 'firstParty':
-      return 'Anthropic direct API and Claude account auth'
+      return 'Anthropic direct API and Microcode account auth'
     case 'github-models':
       return 'GitHub Models via gh auth token or GITHUB_TOKEN'
     case 'github-copilot':
-      return 'GitHub Copilot account-backed Claude models'
+      return 'GitHub Copilot account-backed Microcode models'
     case 'bedrock':
       return 'Amazon Bedrock credentials from your AWS environment'
     case 'vertex':

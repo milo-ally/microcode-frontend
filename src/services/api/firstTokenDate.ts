@@ -3,17 +3,17 @@ import { getOauthConfig } from '../../constants/oauth.js'
 import { getGlobalConfig, saveGlobalConfig } from '../../utils/config.js'
 import { getAuthHeaders } from '../../utils/http.js'
 import { logError } from '../../utils/log.js'
-import { getClaudeCodeUserAgent } from '../../utils/userAgent.js'
+import { getMicroCodeUserAgent } from '../../utils/userAgent.js'
 
 /**
  * Fetch the user's first Microcode token date and store in config.
  * This is called after successful login to cache when they started using Microcode.
  */
-export async function fetchAndStoreClaudeCodeFirstTokenDate(): Promise<void> {
+export async function fetchAndStoreMicroCodeFirstTokenDate(): Promise<void> {
   try {
     const config = getGlobalConfig()
 
-    if (config.microcodeCodeFirstTokenDate !== undefined) {
+    if (config.MicroCodeFirstTokenDate !== undefined) {
       return
     }
 
@@ -29,7 +29,7 @@ export async function fetchAndStoreClaudeCodeFirstTokenDate(): Promise<void> {
     const response = await axios.get(url, {
       headers: {
         ...authHeaders.headers,
-        'User-Agent': getClaudeCodeUserAgent(),
+        'User-Agent': getMicroCodeUserAgent(),
       },
       timeout: 10000,
     })
@@ -52,7 +52,7 @@ export async function fetchAndStoreClaudeCodeFirstTokenDate(): Promise<void> {
 
     saveGlobalConfig(current => ({
       ...current,
-      microcodeCodeFirstTokenDate: firstTokenDate,
+      MicroCodeFirstTokenDate: firstTokenDate,
     }))
   } catch (error) {
     logError(error)

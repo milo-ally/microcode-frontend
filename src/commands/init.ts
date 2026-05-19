@@ -25,21 +25,21 @@ Usage notes:
 This file provides guidance to Microcode (claude.ai/code) when working with code in this repository.
 \`\`\``
 
-const NEW_INIT_PROMPT = `Set up a minimal MICROCODE.md (and optionally skills and hooks) for this repo. MICROCODE.md is loaded into every Microcode session, so it must be concise — only include what Claude would get wrong without it.
+const NEW_INIT_PROMPT = `Set up a minimal MICROCODE.md (and optionally skills and hooks) for this repo. MICROCODE.md is loaded into every Microcode session, so it must be concise — only include what Microcode would get wrong without it.
 
 ## Phase 1: Ask what to set up
 
 Use AskUserQuestion to find out what the user wants:
 
 - "Which MICROCODE.md files should /init set up?"
-  Options: "Project MICROCODE.md" | "Personal CLAUDE.local.md" | "Both project + personal"
+  Options: "Project MICROCODE.md" | "Personal MICROCODE.local.md" | "Both project + personal"
   Description for project: "Team-shared instructions checked into source control — architecture, coding standards, common workflows."
   Description for personal: "Your private preferences for this project (gitignored, not shared) — your role, sandbox URLs, preferred test data, workflow quirks."
 
 - "Also set up skills and hooks?"
   Options: "Skills + hooks" | "Skills only" | "Hooks only" | "Neither, just MICROCODE.md"
-  Description for skills: "On-demand capabilities you or Claude invoke with \`/skill-name\` — good for repeatable workflows and reference knowledge."
-  Description for hooks: "Deterministic shell commands that run on tool events (e.g., format after every edit). Claude can't skip them."
+  Description for skills: "On-demand capabilities you or Microcode invoke with \`/skill-name\` — good for repeatable workflows and reference knowledge."
+  Description for hooks: "Deterministic shell commands that run on tool events (e.g., format after every edit). Microcode can't skip them."
 
 ## Phase 2: Explore the codebase
 
@@ -53,7 +53,7 @@ Detect:
 - Non-obvious gotchas, required env vars, or workflow quirks
 - Existing .microcode/skills/ and .microcode/rules/ directories
 - Formatter configuration (prettier, biome, ruff, black, gofmt, rustfmt, or a unified format script like \`npm run format\` / \`make fmt\`)
-- Git worktree usage: run \`git worktree list\` to check if this repo has multiple worktrees (only relevant if the user wants a personal CLAUDE.local.md)
+- Git worktree usage: run \`git worktree list\` to check if this repo has multiple worktrees (only relevant if the user wants a personal MICROCODE.local.md)
 
 Note what you could NOT figure out from code alone — these become interview questions.
 
@@ -63,18 +63,18 @@ Use AskUserQuestion to gather what you still need to write good MICROCODE.md fil
 
 If the user chose project MICROCODE.md or both: ask about codebase practices — non-obvious commands, gotchas, branch/PR conventions, required env setup, testing quirks. Skip things already in README or obvious from manifest files. Do not mark any options as "recommended" — this is about how their team works, not best practices.
 
-If the user chose personal CLAUDE.local.md or both: ask about them, not the codebase. Do not mark any options as "recommended" — this is about their personal preferences, not best practices. Examples of questions:
+If the user chose personal MICROCODE.local.md or both: ask about them, not the codebase. Do not mark any options as "recommended" — this is about their personal preferences, not best practices. Examples of questions:
   - What's their role on the team? (e.g., "backend engineer", "data scientist", "new hire onboarding")
-  - How familiar are they with this codebase and its languages/frameworks? (so Claude can calibrate explanation depth)
-  - Do they have personal sandbox URLs, test accounts, API key paths, or local setup details Claude should know?
-  - Only if Phase 2 found multiple git worktrees: ask whether their worktrees are nested inside the main repo (e.g., \`.microcode/worktrees/<name>/\`) or siblings/external (e.g., \`../myrepo-feature/\`). If nested, the upward file walk finds the main repo's CLAUDE.local.md automatically — no special handling needed. If sibling/external, the personal content should live in a home-directory file (e.g., \`~/.microcode/<project-name>-instructions.md\`) and each worktree gets a one-line CLAUDE.local.md stub that imports it: \`@~/.microcode/<project-name>-instructions.md\`. Never put this import in the project MICROCODE.md — that would check a personal reference into the team-shared file.
+  - How familiar are they with this codebase and its languages/frameworks? (so Microcode can calibrate explanation depth)
+  - Do they have personal sandbox URLs, test accounts, API key paths, or local setup details Microcode should know?
+  - Only if Phase 2 found multiple git worktrees: ask whether their worktrees are nested inside the main repo (e.g., \`.microcode/worktrees/<name>/\`) or siblings/external (e.g., \`../myrepo-feature/\`). If nested, the upward file walk finds the main repo's MICROCODE.local.md automatically — no special handling needed. If sibling/external, the personal content should live in a home-directory file (e.g., \`~/.microcode/<project-name>-instructions.md\`) and each worktree gets a one-line MICROCODE.local.md stub that imports it: \`@~/.microcode/<project-name>-instructions.md\`. Never put this import in the project MICROCODE.md — that would check a personal reference into the team-shared file.
   - Any communication preferences? (e.g., "be terse", "always explain tradeoffs", "don't summarize at the end")
 
 **Synthesize a proposal from Phase 2 findings** — e.g., format-on-edit if a formatter exists, a \`/verify\` skill if tests exist, a MICROCODE.md note for anything from the gap-fill answers that's a guideline rather than a workflow. For each, pick the artifact type that fits, **constrained by the Phase 1 skills+hooks choice**:
 
-  - **Hook** (stricter) — deterministic shell command on a tool event; Claude can't skip it. Fits mechanical, fast, per-edit steps: formatting, linting, running a quick test on the changed file.
-  - **Skill** (on-demand) — you or Claude invoke \`/skill-name\` when you want it. Fits workflows that don't belong on every edit: deep verification, session reports, deploys.
-  - **MICROCODE.md note** (looser) — influences Claude's behavior but not enforced. Fits communication/thinking preferences: "plan before coding", "be terse", "explain tradeoffs".
+  - **Hook** (stricter) — deterministic shell command on a tool event; Microcode can't skip it. Fits mechanical, fast, per-edit steps: formatting, linting, running a quick test on the changed file.
+  - **Skill** (on-demand) — you or Microcode invoke \`/skill-name\` when you want it. Fits workflows that don't belong on every edit: deep verification, session reports, deploys.
+  - **MICROCODE.md note** (looser) — influences Microcode's behavior but not enforced. Fits communication/thinking preferences: "plan before coding", "be terse", "explain tradeoffs".
 
   **Respect Phase 1's skills+hooks choice as a hard filter**: if the user picked "Skills only", downgrade any hook you'd suggest to a skill or a MICROCODE.md note. If "Hooks only", downgrade skills to hooks (where mechanically possible) or notes. If "Neither", everything becomes a MICROCODE.md note. Never propose an artifact type the user didn't opt into.
 
@@ -94,12 +94,12 @@ If the user chose personal CLAUDE.local.md or both: ask about them, not the code
 
 ## Phase 4: Write MICROCODE.md (if user chose project or both)
 
-Write a minimal MICROCODE.md at the project root. Every line must pass this test: "Would removing this cause Claude to make mistakes?" If no, cut it.
+Write a minimal MICROCODE.md at the project root. Every line must pass this test: "Would removing this cause Microcode to make mistakes?" If no, cut it.
 
-**Consume \`note\` entries from the Phase 3 preference queue whose target is MICROCODE.md** (team-level notes) — add each as a concise line in the most relevant section. These are the behaviors the user wants Claude to follow but didn't need guaranteed (e.g., "propose a plan before implementing", "explain the tradeoffs when refactoring"). Leave personal-targeted notes for Phase 5.
+**Consume \`note\` entries from the Phase 3 preference queue whose target is MICROCODE.md** (team-level notes) — add each as a concise line in the most relevant section. These are the behaviors the user wants Microcode to follow but didn't need guaranteed (e.g., "propose a plan before implementing", "explain the tradeoffs when refactoring"). Leave personal-targeted notes for Phase 5.
 
 Include:
-- Build/test/lint commands Claude can't guess (non-standard scripts, flags, or sequences)
+- Build/test/lint commands Microcode can't guess (non-standard scripts, flags, or sequences)
 - Code style rules that DIFFER from language defaults (e.g., "prefer type over interface")
 - Testing instructions and quirks (e.g., "run single test with: pytest -k 'test_name'")
 - Repo etiquette (branch naming, PR conventions, commit style)
@@ -108,11 +108,11 @@ Include:
 - Important parts from existing AI coding tool configs if they exist (AGENTS.md, .cursor/rules, .cursorrules, .github/copilot-instructions.md, .windsurfrules, .clinerules)
 
 Exclude:
-- File-by-file structure or component lists (Claude can discover these by reading the codebase)
-- Standard language conventions Claude already knows
+- File-by-file structure or component lists (Microcode can discover these by reading the codebase)
+- Standard language conventions Microcode already knows
 - Generic advice ("write clean code", "handle errors")
 - Detailed API docs or long references — use \`@path/to/import\` syntax instead (e.g., \`@docs/api-reference.md\`) to inline content on demand without bloating MICROCODE.md
-- Information that changes frequently — reference the source with \`@path/to/import\` so Claude always reads the current version
+- Information that changes frequently — reference the source with \`@path/to/import\` so Microcode always reads the current version
 - Long tutorials or walkthroughs (move to a separate file and reference with \`@path/to/import\`, or put in a skill)
 - Commands obvious from manifest files (e.g., standard "npm test", "cargo test", "pytest")
 
@@ -132,28 +132,28 @@ If MICROCODE.md already exists: read it, propose specific changes as diffs, and 
 
 For projects with multiple concerns, suggest organizing instructions into \`.microcode/rules/\` as separate focused files (e.g., \`code-style.md\`, \`testing.md\`, \`security.md\`). These are loaded automatically alongside MICROCODE.md and can be scoped to specific file paths using \`paths\` frontmatter.
 
-For projects with distinct subdirectories (monorepos, multi-module projects, etc.): mention that subdirectory MICROCODE.md files can be added for module-specific instructions (they're loaded automatically when Claude works in those directories). Offer to create them if the user wants.
+For projects with distinct subdirectories (monorepos, multi-module projects, etc.): mention that subdirectory MICROCODE.md files can be added for module-specific instructions (they're loaded automatically when Microcode works in those directories). Offer to create them if the user wants.
 
-## Phase 5: Write CLAUDE.local.md (if user chose personal or both)
+## Phase 5: Write MICROCODE.local.md (if user chose personal or both)
 
-Write a minimal CLAUDE.local.md at the project root. This file is automatically loaded alongside MICROCODE.md. After creating it, add \`CLAUDE.local.md\` to the project's .gitignore so it stays private.
+Write a minimal MICROCODE.local.md at the project root. This file is automatically loaded alongside MICROCODE.md. After creating it, add \`MICROCODE.local.md\` to the project's .gitignore so it stays private.
 
-**Consume \`note\` entries from the Phase 3 preference queue whose target is CLAUDE.local.md** (personal-level notes) — add each as a concise line. If the user chose personal-only in Phase 1, this is the sole consumer of note entries.
+**Consume \`note\` entries from the Phase 3 preference queue whose target is MICROCODE.local.md** (personal-level notes) — add each as a concise line. If the user chose personal-only in Phase 1, this is the sole consumer of note entries.
 
 Include:
-- The user's role and familiarity with the codebase (so Claude can calibrate explanations)
+- The user's role and familiarity with the codebase (so Microcode can calibrate explanations)
 - Personal sandbox URLs, test accounts, or local setup details
 - Personal workflow or communication preferences
 
-Keep it short — only include what would make Claude's responses noticeably better for this user.
+Keep it short — only include what would make Microcode's responses noticeably better for this user.
 
-If Phase 2 found multiple git worktrees and the user confirmed they use sibling/external worktrees (not nested inside the main repo): the upward file walk won't find a single CLAUDE.local.md from all worktrees. Write the actual personal content to \`~/.microcode/<project-name>-instructions.md\` and make CLAUDE.local.md a one-line stub that imports it: \`@~/.microcode/<project-name>-instructions.md\`. The user can copy this one-line stub to each sibling worktree. Never put this import in the project MICROCODE.md. If worktrees are nested inside the main repo (e.g., \`.microcode/worktrees/\`), no special handling is needed — the main repo's CLAUDE.local.md is found automatically.
+If Phase 2 found multiple git worktrees and the user confirmed they use sibling/external worktrees (not nested inside the main repo): the upward file walk won't find a single MICROCODE.local.md from all worktrees. Write the actual personal content to \`~/.microcode/<project-name>-instructions.md\` and make MICROCODE.local.md a one-line stub that imports it: \`@~/.microcode/<project-name>-instructions.md\`. The user can copy this one-line stub to each sibling worktree. Never put this import in the project MICROCODE.md. If worktrees are nested inside the main repo (e.g., \`.microcode/worktrees/\`), no special handling is needed — the main repo's MICROCODE.local.md is found automatically.
 
-If CLAUDE.local.md already exists: read it, propose specific additions, and do not silently overwrite.
+If MICROCODE.local.md already exists: read it, propose specific additions, and do not silently overwrite.
 
 ## Phase 6: Suggest and create skills (if user chose "Skills + hooks" or "Skills only")
 
-Skills add capabilities Claude can use on demand without bloating every session.
+Skills add capabilities Microcode can use on demand without bloating every session.
 
 **First, consume \`skill\` entries from the Phase 3 preference queue.** Each queued skill preference becomes a SKILL.md tailored to what the user described. For each:
 - Name it from the preference (e.g., "verify-deep", "session-report", "deploy-sandbox")
@@ -176,10 +176,10 @@ name: <skill-name>
 description: <what the skill does and when to use it>
 ---
 
-<Instructions for Claude>
+<Instructions for Microcode>
 \`\`\`
 
-Both the user (\`/<skill-name>\`) and Claude can invoke skills by default. For workflows with side effects (e.g., \`/deploy\`, \`/fix-issue 123\`), add \`disable-model-invocation: true\` so only the user can trigger it, and use \`$ARGUMENTS\` to accept input.
+Both the user (\`/<skill-name>\`) and Microcode can invoke skills by default. For workflows with side effects (e.g., \`/deploy\`, \`/fix-issue 123\`), add \`disable-model-invocation: true\` so only the user can trigger it, and use \`$ARGUMENTS\` to accept input.
 
 ## Phase 7: Suggest additional optimizations
 
@@ -187,9 +187,9 @@ Tell the user you're going to suggest a few additional optimizations now that MI
 
 Check the environment and ask about each gap you find (use AskUserQuestion):
 
-- **GitHub CLI**: Run \`which gh\` (or \`where gh\` on Windows). If it's missing AND the project uses GitHub (check \`git remote -v\` for github.com), ask the user if they want to install it. Explain that the GitHub CLI lets Claude help with commits, pull requests, issues, and code review directly.
+- **GitHub CLI**: Run \`which gh\` (or \`where gh\` on Windows). If it's missing AND the project uses GitHub (check \`git remote -v\` for github.com), ask the user if they want to install it. Explain that the GitHub CLI lets Microcode help with commits, pull requests, issues, and code review directly.
 
-- **Linting**: If Phase 2 found no lint config (no .eslintrc, ruff.toml, .golangci.yml, etc. for the project's language), ask the user if they want Claude to set up linting for this codebase. Explain that linting catches issues early and gives Claude fast feedback on its own edits.
+- **Linting**: If Phase 2 found no lint config (no .eslintrc, ruff.toml, .golangci.yml, etc. for the project's language), ask the user if they want Microcode to set up linting for this codebase. Explain that linting catches issues early and gives Microcode fast feedback on its own edits.
 
 - **Proposal-sourced hooks** (if user chose "Skills + hooks" or "Hooks only"): Consume \`hook\` entries from the Phase 3 preference queue. If Phase 2 found a formatter and the queue has no formatting hook, offer format-on-edit as a fallback. If the user chose "Neither" or "Skills only" in Phase 1, skip this bullet entirely.
 
@@ -199,9 +199,9 @@ Check the environment and ask about each gap you find (use AskUserQuestion):
 
   2. Pick the event and matcher from the preference:
      - "after every edit" → \`PostToolUse\` with matcher \`Write|Edit\`
-     - "when Claude finishes" / "before I review" → \`Stop\` event (fires at the end of every turn — including read-only ones)
+     - "when Microcode finishes" / "before I review" → \`Stop\` event (fires at the end of every turn — including read-only ones)
      - "before running bash" → \`PreToolUse\` with matcher \`Bash\`
-     - "before committing" (literal git-commit gate) → **not a hooks.json hook.** Matchers can't filter Bash by command content, so there's no way to target only \`git commit\`. Route this to a git pre-commit hook (\`.git/hooks/pre-commit\`, husky, pre-commit framework) instead — offer to write one. If the user actually means "before I review and commit Claude's output", that's \`Stop\` — probe to disambiguate.
+     - "before committing" (literal git-commit gate) → **not a hooks.json hook.** Matchers can't filter Bash by command content, so there's no way to target only \`git commit\`. Route this to a git pre-commit hook (\`.git/hooks/pre-commit\`, husky, pre-commit framework) instead — offer to write one. If the user actually means "before I review and commit Microcode's output", that's \`Stop\` — probe to disambiguate.
      Probe if the preference is ambiguous.
 
   3. **Load the hook reference** (once per \`/init\` run, before the first hook): invoke the Skill tool with \`skill: 'update-config'\` and args starting with \`[hooks-only]\` followed by a one-line summary of what you're building — e.g., \`[hooks-only] Constructing a PostToolUse/Write|Edit format hook for .microcode/settings.json using ruff\`. This loads the hooks schema and verification flow into context. Subsequent hooks reuse it — don't re-invoke.
@@ -217,9 +217,9 @@ Recap what was set up — which files were written and the key points included i
 Then tell the user that you'll be introducing a few more suggestions for optimizing their codebase and Microcode setup based on what you found. Present these as a single, well-formatted to-do list where every item is relevant to this repo. Put the most impactful items first.
 
 When building the list, work through these checks and include only what applies:
-- If frontend code was detected (React, Vue, Svelte, etc.): \`/plugin install frontend-design@microcode-plugins-official\` gives Claude design principles and component patterns so it produces polished UI; \`/plugin install playwright@microcode-plugins-official\` lets Claude launch a real browser, screenshot what it built, and fix visual bugs itself.
+- If frontend code was detected (React, Vue, Svelte, etc.): \`/plugin install frontend-design@microcode-plugins-official\` gives Microcode design principles and component patterns so it produces polished UI; \`/plugin install playwright@microcode-plugins-official\` lets Microcode launch a real browser, screenshot what it built, and fix visual bugs itself.
 - If you found gaps in Phase 7 (missing GitHub CLI, missing linting) and the user said no: list them here with a one-line reason why each helps.
-- If tests are missing or sparse: suggest setting up a test framework so Claude can verify its own changes.
+- If tests are missing or sparse: suggest setting up a test framework so Microcode can verify its own changes.
 - To help you create skills and optimize existing skills using evals, Microcode has an official skill-creator plugin you can install. Install it with \`/plugin install skill-creator@microcode-plugins-official\`, then run \`/skill-creator <skill-name>\` to create new skills or refine any existing skill. (Always include this one.)
 - Browse official plugins with \`/plugin\` — these bundle skills, agents, hooks, and MCP servers that you may find helpful. You can also create your own custom plugins to share them with others. (Always include this one.)`
 

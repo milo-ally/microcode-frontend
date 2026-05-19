@@ -16,7 +16,7 @@ import type { AgentId } from '../../types/ids.js';
 import type { AssistantMessage } from '../../types/message.js';
 import { parseForSecurity } from '../../utils/bash/ast.js';
 import { splitCommand_DEPRECATED, splitCommandWithOperators } from '../../utils/bash/commands.js';
-import { extractMicrocodeCodeHints } from '../../utils/microcodeCodeHints.js';
+import { extractMicroCodeHints } from '../../utils/microcodeCodeHints.js';
 import { detectCodeIndexingFromCommand } from '../../utils/codeIndexing.js';
 import { isEnvTruthy } from '../../utils/envUtils.js';
 import { isENOENT, ShellError } from '../../utils/errors.js';
@@ -573,7 +573,7 @@ export const BashTool = buildTool({
       };
     }
 
-    // For image data, format as image content block for Claude
+    // For image data, format as image content block for Microcode
     if (isImage) {
       const block = buildImageToolResult(stdout, toolUseID);
       if (block) return block;
@@ -771,13 +771,13 @@ export const BashTool = buildTool({
     }
     let strippedStdout = stripEmptyLines(stdout);
 
-    // Microcode hints protocol: CLIs/SDKs gated on CLAUDECODE=1 emit a
+    // Microcode hints protocol: CLIs/SDKs gated on MICROCODE=1 emit a
     // `<microcode-hint />` tag to stderr (merged into stdout here). Scan,
-    // record for useMicrocodeCodeHintRecommendation to surface, then strip
+    // record for useMicroCodeHintRecommendation to surface, then strip
     // so the model never sees the tag — a zero-token side channel.
     // Stripping runs unconditionally (subagent output must stay clean too);
     // only the dialog recording is main-thread-only.
-    const extracted = extractMicrocodeCodeHints(strippedStdout, input.command);
+    const extracted = extractMicroCodeHints(strippedStdout, input.command);
     strippedStdout = extracted.stripped;
     if (isMainThread && extracted.hints.length > 0) {
       for (const hint of extracted.hints) maybeRecordPluginHint(hint);
@@ -982,7 +982,7 @@ async function* runShellCommand({
     }, ASSISTANT_BLOCKING_BUDGET_MS).unref();
   }
 
-  // Handle Claude asking to run it in the background explicitly
+  // Handle Microcode asking to run it in the background explicitly
   // When explicitly requested via run_in_background, always honor the request
   // regardless of the command type (isAutobackgroundingAllowed only applies to automatic backgrounding)
   // Skip if background tasks are disabled - run in foreground instead

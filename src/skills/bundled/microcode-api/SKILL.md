@@ -1,4 +1,4 @@
-# Claude API
+# Microcode API
 
 Use this skill when the user is building against Anthropic APIs or SDKs, including `@anthropic-ai/sdk`, `anthropic`, or Agent SDK integrations.
 
@@ -21,12 +21,12 @@ Use this skill when the user is building against Anthropic APIs or SDKs, includi
 
 ## Reading Guide
 
-- Basic request/response flow: `{lang}/claude-api/README.md`
-- Streaming output: `{lang}/claude-api/streaming.md`
-- Tool use: `shared/tool-use-concepts.md` and `{lang}/claude-api/tool-use.md`
+- Basic request/response flow: `{lang}/microcode-api/README.md`
+- Streaming output: `{lang}/microcode-api/streaming.md`
+- Tool use: `shared/tool-use-concepts.md` and `{lang}/microcode-api/tool-use.md`
 - Prompt caching: `shared/prompt-caching.md`
-- Batch processing: `{lang}/claude-api/batches.md`
-- File upload flows: `{lang}/claude-api/files-api.md`
+- Batch processing: `{lang}/microcode-api/batches.md`
+- File upload flows: `{lang}/microcode-api/files-api.md`
 - Model choice or naming: `shared/models.md`
 - API and SDK failures: `shared/error-codes.md`
 - Live sources for fresh answers: `shared/live-sources.md`

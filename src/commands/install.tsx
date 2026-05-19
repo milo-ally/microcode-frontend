@@ -44,11 +44,11 @@ function getInstallationPath(): string {
   const homeDir = homedir();
   if (isWindows) {
     // Convert to Windows-style path
-    const windowsPath = join(homeDir, '.local', 'bin', 'claude.exe');
+    const windowsPath = join(homeDir, '.local', 'bin', 'microcode.exe');
     // Replace forward slashes with backslashes for Windows display
     return windowsPath.replace(/\//g, '\\');
   }
-  return '~/.local/bin/claude';
+  return '~/.local/bin/microcode';
 }
 function SetupNotes(t0) {
   const $ = _c(5);
@@ -113,7 +113,7 @@ function Install({
 
         // Check specifically for lock failure
         if (result.lockFailed) {
-          throw new Error('Could not install - another process is currently installing Claude. Please try again in a moment.');
+          throw new Error('Could not install - another process is currently installing Microcode. Please try again in a moment.');
         }
 
         // If we couldn't get the version, there might be an issue

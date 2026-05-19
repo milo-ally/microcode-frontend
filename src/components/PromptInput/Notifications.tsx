@@ -12,7 +12,7 @@ import type { IDESelection } from '../../hooks/useIdeSelection.js';
 import { useMainLoopModel } from '../../hooks/useMainLoopModel.js';
 import { useVoiceEnabled } from '../../hooks/useVoiceEnabled.js';
 import { Box, Text } from '../../ink.js';
-import { useClaudeAiLimits } from '../../services/microcodeAiLimitsHook.js';
+import { useMicrocodeAiLimits } from '../../services/microcodeAiLimitsHook.js';
 import { calculateTokenWarningState } from '../../services/compact/autoCompact.js';
 import type { MCPServerConnection } from '../../services/mcp/types.js';
 import type { Message } from '../../types/message.js';
@@ -99,7 +99,7 @@ export function Notifications(t0) {
     addNotification,
     removeNotification
   } = useNotifications();
-  const claudeAiLimits = useClaudeAiLimits();
+  const claudeAiLimits = useMicrocodeAiLimits();
   let t5;
   let t6;
   if ($[5] !== addNotification) {

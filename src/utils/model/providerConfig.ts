@@ -96,7 +96,7 @@ const BUILTIN_PROVIDER_CONFIGS: Record<
     models: [
       'openai/gpt-4.1',
       'openai/gpt-4.1-mini',
-      'anthropic/claude-3.7-sonnet',
+      'anthropic/microcode-3.7-sonnet',
       'meta/Llama-3.3-70B-Instruct',
     ],
   },

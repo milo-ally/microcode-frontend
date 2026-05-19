@@ -14,7 +14,7 @@ const desktop = {
   type: 'local-jsx',
   name: 'desktop',
   aliases: ['app'],
-  description: 'Continue the current session in Claude Desktop',
+  description: 'Continue the current session in Microcode Desktop',
   availability: ['microcode-ai'],
   isEnabled: isSupportedPlatform,
   get isHidden() {

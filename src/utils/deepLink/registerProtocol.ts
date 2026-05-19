@@ -3,7 +3,7 @@
  *
  * Registers the `microcode-cli://` custom URI scheme with the OS,
  * so that clicking a `microcode-cli://` link in a browser (or any app) will
- * invoke `claude --handle-uri <url>`.
+ * invoke `microcode --handle-uri <url>`.
  *
  * Platform details:
  *   macOS  — Creates a minimal .app trampoline in ~/Applications with
@@ -30,7 +30,7 @@ import { which } from '../which.js'
 import { getUserBinDir, getXDGDataHome } from '../xdg.js'
 import { DEEP_LINK_PROTOCOL } from './parseDeepLink.js'
 
-export const MACOS_BUNDLE_ID = 'com.anthropic.claude-code-url-handler'
+export const MACOS_BUNDLE_ID = 'com.anthropic.microcode-code-url-handler'
 const APP_NAME = 'Microcode URL Handler'
 const DESKTOP_FILE_NAME = 'microcode-url-handler.desktop'
 const MACOS_APP_NAME = 'Microcode URL Handler.app'
@@ -53,11 +53,11 @@ const WINDOWS_COMMAND_KEY = `${WINDOWS_REG_KEY}\\shell\\open\\command`
 
 const FAILURE_BACKOFF_MS = 24 * 60 * 60 * 1000
 
-function linuxExecLine(claudePath: string): string {
-  return `Exec="${claudePath}" --handle-uri %u`
+function linuxExecLine(microcodePath: string): string {
+  return `Exec="${microcodePath}" --handle-uri %u`
 }
-function windowsCommandValue(claudePath: string): string {
-  return `"${claudePath}" --handle-uri "%1"`
+function windowsCommandValue(microcodePath: string): string {
+  return `"${microcodePath}" --handle-uri "%1"`
 }
 
 /**
@@ -66,13 +66,13 @@ function windowsCommandValue(claudePath: string): string {
  * Creates a .app bundle where the CFBundleExecutable is a symlink to the
  * already-installed (and signed) `microcode` binary. When macOS opens a
  * `microcode-cli://` URL, it launches `microcode` through this app bundle.
- * Claude then uses the url-handler NAPI module to read the URL from the
+ * Microcode then uses the url-handler NAPI module to read the URL from the
  * Apple Event and handles it normally.
  *
  * This approach avoids shipping a separate executable (which would need
  * to be signed and allowlisted by endpoint security tools like Santa).
  */
-async function registerMacos(claudePath: string): Promise<void> {
+async function registerMacos(microcodePath: string): Promise<void> {
   const contentsDir = path.join(MACOS_APP_DIR, 'Contents')
 
   // Remove any existing app bundle to start clean
@@ -87,7 +87,7 @@ async function registerMacos(claudePath: string): Promise<void> {
 
   await fs.mkdir(path.dirname(MACOS_SYMLINK_PATH), { recursive: true })
 
-  // Info.plist — registers the URL scheme with claude as the executable
+  // Info.plist — registers the URL scheme with microcode as the executable
   const infoPlist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -97,7 +97,7 @@ async function registerMacos(claudePath: string): Promise<void> {
   <key>CFBundleName</key>
   <string>${APP_NAME}</string>
   <key>CFBundleExecutable</key>
-  <string>claude</string>
+  <string>microcode</string>
   <key>CFBundleVersion</key>
   <string>1.0</string>
   <key>CFBundlePackageType</key>
@@ -120,12 +120,12 @@ async function registerMacos(claudePath: string): Promise<void> {
 
   await fs.writeFile(path.join(contentsDir, 'Info.plist'), infoPlist)
 
-  // Symlink to the already-signed claude binary — avoids a new executable
+  // Symlink to the already-signed microcode binary — avoids a new executable
   // that would need signing and endpoint-security allowlisting.
   // Written LAST among the throwing fs calls: isProtocolHandlerCurrent reads
   // this symlink, so it acts as the commit marker. If Info.plist write
   // failed above, no symlink → next session retries.
-  await fs.symlink(claudePath, MACOS_SYMLINK_PATH)
+  await fs.symlink(microcodePath, MACOS_SYMLINK_PATH)
 
   // Re-register the app with LaunchServices so macOS picks up the URL scheme.
   const lsregister =
@@ -141,13 +141,13 @@ async function registerMacos(claudePath: string): Promise<void> {
  * Register the protocol handler on Linux.
  * Creates a .desktop file and registers it with xdg-mime.
  */
-async function registerLinux(claudePath: string): Promise<void> {
+async function registerLinux(microcodePath: string): Promise<void> {
   await fs.mkdir(path.dirname(linuxDesktopPath()), { recursive: true })
 
   const desktopEntry = `[Desktop Entry]
 Name=${APP_NAME}
 Comment=Handle ${DEEP_LINK_PROTOCOL}:// deep links for Microcode
-${linuxExecLine(claudePath)}
+${linuxExecLine(microcodePath)}
 Type=Application
 NoDisplay=true
 MimeType=x-scheme-handler/${DEEP_LINK_PROTOCOL};
@@ -182,7 +182,7 @@ MimeType=x-scheme-handler/${DEEP_LINK_PROTOCOL};
 /**
  * Register the protocol handler on Windows via the registry.
  */
-async function registerWindows(claudePath: string): Promise<void> {
+async function registerWindows(microcodePath: string): Promise<void> {
   for (const args of [
     ['add', WINDOWS_REG_KEY, '/ve', '/d', `URL:${APP_NAME}`, '/f'],
     ['add', WINDOWS_REG_KEY, '/v', 'URL Protocol', '/d', '', '/f'],
@@ -191,7 +191,7 @@ async function registerWindows(claudePath: string): Promise<void> {
       WINDOWS_COMMAND_KEY,
       '/ve',
       '/d',
-      windowsCommandValue(claudePath),
+      windowsCommandValue(microcodePath),
       '/f',
     ],
   ]) {
@@ -213,9 +213,9 @@ async function registerWindows(claudePath: string): Promise<void> {
  * After registration, clicking a `microcode-cli://` link will invoke claude.
  */
 export async function registerProtocolHandler(
-  claudePath?: string,
+  microcodePath?: string,
 ): Promise<void> {
-  const resolved = claudePath ?? (await resolveClaudePath())
+  const resolved = microcodePath ?? (await resolveMicrocodePath())
 
   switch (process.platform) {
     case 'darwin':
@@ -234,11 +234,11 @@ export async function registerProtocolHandler(
 
 /**
  * Resolve the microcode binary path for protocol registration. Prefers the
- * native installer's stable symlink (~/.local/bin/claude) which survives
+ * native installer's stable symlink (~/.local/bin/microcode) which survives
  * auto-updates; falls back to process.execPath when the symlink is absent
  * (dev builds, non-native installs).
  */
-async function resolveClaudePath(): Promise<string> {
+async function resolveMicrocodePath(): Promise<string> {
   const binaryName = process.platform === 'win32' ? 'claude.exe' : 'microcode'
   const stablePath = path.join(getUserBinDir(), binaryName)
   try {
@@ -261,17 +261,17 @@ async function resolveClaudePath(): Promise<string> {
  * Any read error (ENOENT, EACCES, reg nonzero) → false → re-register.
  */
 export async function isProtocolHandlerCurrent(
-  claudePath: string,
+  microcodePath: string,
 ): Promise<boolean> {
   try {
     switch (process.platform) {
       case 'darwin': {
         const target = await fs.readlink(MACOS_SYMLINK_PATH)
-        return target === claudePath
+        return target === microcodePath
       }
       case 'linux': {
         const content = await fs.readFile(linuxDesktopPath(), 'utf8')
-        return content.includes(linuxExecLine(claudePath))
+        return content.includes(linuxExecLine(microcodePath))
       }
       case 'win32': {
         const { stdout, code } = await execFileNoThrow(
@@ -279,7 +279,7 @@ export async function isProtocolHandlerCurrent(
           ['query', WINDOWS_COMMAND_KEY, '/ve'],
           { useCwd: false },
         )
-        return code === 0 && stdout.includes(windowsCommandValue(claudePath))
+        return code === 0 && stdout.includes(windowsCommandValue(microcodePath))
       }
       default:
         return false
@@ -303,8 +303,8 @@ export async function ensureDeepLinkProtocolRegistered(): Promise<void> {
     return
   }
 
-  const claudePath = await resolveClaudePath()
-  if (await isProtocolHandlerCurrent(claudePath)) {
+  const microcodePath = await resolveMicrocodePath()
+  if (await isProtocolHandlerCurrent(microcodePath)) {
     return
   }
 
@@ -326,7 +326,7 @@ export async function ensureDeepLinkProtocolRegistered(): Promise<void> {
   }
 
   try {
-    await registerProtocolHandler(claudePath)
+    await registerProtocolHandler(microcodePath)
     logEvent('tengu_deep_link_registered', { success: true })
     logForDebugging('Auto-registered microcode-cli:// deep link protocol handler')
     await fs.rm(failureMarkerPath, { force: true }).catch(() => {})

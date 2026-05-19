@@ -22,7 +22,7 @@ import {
   WEB_SEARCH_BETA_HEADER,
 } from '../constants/betas.js'
 import { OAUTH_BETA_HEADER } from '../constants/oauth.js'
-import { isClaudeAISubscriber } from './auth.js'
+import { isMicrocodeAISubscriber } from './auth.js'
 import { has1mContext } from './context.js'
 import { isEnvDefinedFalsy, isEnvTruthy } from './envUtils.js'
 import { getCanonicalName } from './model/model.js'
@@ -68,7 +68,7 @@ export function filterAllowedSdkBetas(
     return undefined
   }
 
-  if (isClaudeAISubscriber()) {
+  if (isMicrocodeAISubscriber()) {
     // biome-ignore lint/suspicious/noConsole: intentional warning
     console.warn(
       'Warning: Custom betas are only available for API key users. Ignoring provided betas.',
@@ -113,7 +113,7 @@ export function modelSupportsISP(model: string): boolean {
 
 function vertexModelSupportsWebSearch(model: string): boolean {
   const canonical = getCanonicalName(model)
-  // Web search only supported on Claude 4.0+ models on Vertex
+  // Web search only supported on Microcode 4.0+ models on Vertex
   return (
     canonical.includes('claude-opus-4') ||
     canonical.includes('claude-sonnet-4') ||
@@ -121,7 +121,7 @@ function vertexModelSupportsWebSearch(model: string): boolean {
   )
 }
 
-// Context management is supported on Claude 4+ models
+// Context management is supported on Microcode 4+ models
 export function modelSupportsContextManagement(model: string): boolean {
   const canonical = getCanonicalName(model)
   const provider = getAPIProvider()
@@ -168,8 +168,8 @@ export function modelSupportsAutoMode(model: string): boolean {
     }
     // GrowthBook override: tengu_auto_mode_config.allowModels force-enables
     // auto mode for listed models, bypassing the denylist/allowlist below.
-    // Exact model IDs (e.g. "claude-strudel-v6-p") match only that model;
-    // canonical names (e.g. "claude-strudel") match the whole family.
+    // Exact model IDs (e.g. "microcode-strudel-v6-p") match only that model;
+    // canonical names (e.g. "microcode-strudel") match the whole family.
     const config = getFeatureValue_CACHED_MAY_BE_STALE<{
       allowModels?: string[]
     }>('tengu_auto_mode_config', {})
@@ -182,21 +182,21 @@ export function modelSupportsAutoMode(model: string): boolean {
       return true
     }
     if (process.env.USER_TYPE === 'ant') {
-      // Denylist: block known-unsupported claude models, allow everything else (ant-internal models etc.)
+      // Denylist: block known-unsupported microcode models, allow everything else (ant-internal models etc.)
       if (m.includes('microcode-3-')) return false
       // microcode-*-4 not followed by -[6-9]: blocks bare -4, -4-YYYYMMDD, -4@, -4-0 thru -4-5
-      if (/claude-(opus|sonnet|haiku)-4(?!-[6-9])/.test(m)) return false
+      if (/microcode-(opus|sonnet|haiku)-4(?!-[6-9])/.test(m)) return false
       return true
     }
     // External allowlist (firstParty already checked above).
-    return /^claude-(opus|sonnet)-4-6/.test(m)
+    return /^microcode-(opus|sonnet)-4-6/.test(m)
   }
   return false
 }
 
 /**
  * Get the correct tool search beta header for the current API provider.
- * - Claude API / Foundry: advanced-tool-use-2025-11-20
+ * - Microcode API / Foundry: advanced-tool-use-2025-11-20
  * - Vertex AI / Bedrock: tool-search-tool-2025-10-19
  */
 export function getToolSearchBetaHeader(): string {
@@ -248,7 +248,7 @@ export const getAllModelBetas = memoize((model: string): string[] => {
       }
     }
   }
-  if (isClaudeAISubscriber()) {
+  if (isMicrocodeAISubscriber()) {
     betaHeaders.push(OAUTH_BETA_HEADER)
   }
   if (has1mContext(model)) {
@@ -342,7 +342,7 @@ export const getAllModelBetas = memoize((model: string): string[] => {
     betaHeaders.push(TOKEN_EFFICIENT_TOOLS_BETA_HEADER)
   }
 
-  // Add web search beta for Vertex Claude 4.0+ models only
+  // Add web search beta for Vertex Microcode 4.0+ models only
   if (provider === 'vertex' && vertexModelSupportsWebSearch(model)) {
     betaHeaders.push(WEB_SEARCH_BETA_HEADER)
   }

@@ -4,7 +4,7 @@ Use this pattern when the change affects a command, flag, formatter, or local wo
 
 ## Example
 
-Change: update `claude doctor` output or bootstrap behavior.
+Change: update `microcode doctor` output or bootstrap behavior.
 
 Verification:
 
@@ -25,6 +25,6 @@ bun run dev --help
 
 ## Good Result Summary
 
-- `Verified: bun run version printed the restored Claude Code version.`
+- `Verified: bun run version printed the restored Microcode version.`
 - `Verified: bun run dev --help showed the full CLI command tree.`
 - `Risk: interactive raw-mode flows were not exercised in a non-TTY shell.`

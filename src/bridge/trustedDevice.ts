@@ -106,12 +106,12 @@ export async function enrollTrustedDevice(): Promise<void> {
       )
       return
     }
-    // If CLAUDE_TRUSTED_DEVICE_TOKEN is set (e.g. by an enterprise wrapper),
+    // If MICROCODE_TRUSTED_DEVICE_TOKEN is set (e.g. by an enterprise wrapper),
     // skip enrollment — the env var takes precedence in readStoredToken() so
     // any enrolled token would be shadowed and never used.
     if (process.env.MICROCODE_TRUSTED_DEVICE_TOKEN) {
       logForDebugging(
-        '[trusted-device] CLAUDE_TRUSTED_DEVICE_TOKEN env var is set, skipping enrollment (env var takes precedence)',
+        '[trusted-device] MICROCODE_TRUSTED_DEVICE_TOKEN env var is set, skipping enrollment (env var takes precedence)',
       )
       return
     }
@@ -119,10 +119,10 @@ export async function enrollTrustedDevice(): Promise<void> {
     // (config → file → permissions → sessionStorage → commands). Daemon callers
     // of getTrustedDeviceToken() don't need this; only /login does.
     /* eslint-disable @typescript-eslint/no-require-imports */
-    const { getClaudeAIOAuthTokens } =
+    const { getMicrocodeAIOAuthTokens } =
       require('../utils/auth.js') as typeof import('../utils/auth.js')
     /* eslint-enable @typescript-eslint/no-require-imports */
-    const accessToken = getClaudeAIOAuthTokens()?.accessToken
+    const accessToken = getMicrocodeAIOAuthTokens()?.accessToken
     if (!accessToken) {
       logForDebugging('[trusted-device] No OAuth token, skipping enrollment')
       return

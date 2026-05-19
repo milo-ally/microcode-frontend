@@ -28,7 +28,7 @@ jobs:
       pull-requests: read
       issues: read
       id-token: write
-      actions: read # Required for Claude to read CI results on PRs
+      actions: read # Required for Microcode to read CI results on PRs
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -41,11 +41,11 @@ jobs:
         with:
           anthropic_api_key: \${{ secrets.ANTHROPIC_API_KEY }}
 
-          # This is an optional setting that allows Claude to read CI results on PRs
+          # This is an optional setting that allows Microcode to read CI results on PRs
           additional_permissions: |
             actions: read
 
-          # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
+          # Optional: Give a custom prompt to Microcode. If this is not specified, Microcode will perform the instructions specified in the comment that tagged it.
           # prompt: 'Update the pull request description to include a summary of changes.'
 
           # Optional: Add microcode_args to customize behavior and configuration
@@ -61,7 +61,7 @@ This PR adds a GitHub Actions workflow that enables Microcode integration in our
 
 ### What is Microcode?
 
-[Microcode](https://claude.com/microcode) is an AI coding agent that can help with:
+[Microcode](https://microcode.com/microcode) is an AI coding agent that can help with:
 - Bug fixes and improvements  
 - Documentation updates
 - Implementing new features
@@ -71,22 +71,22 @@ This PR adds a GitHub Actions workflow that enables Microcode integration in our
 
 ### How it works
 
-Once this PR is merged, we'll be able to interact with Claude by mentioning @microcode in a pull request or issue comment.
-Once the workflow is triggered, Claude will analyze the comment and surrounding context, and execute on the request in a GitHub action.
+Once this PR is merged, we'll be able to interact with Microcode by mentioning @microcode in a pull request or issue comment.
+Once the workflow is triggered, Microcode will analyze the comment and surrounding context, and execute on the request in a GitHub action.
 
 ### Important Notes
 
 - **This workflow won't take effect until this PR is merged**
 - **@microcode mentions won't work until after the merge is complete**
-- The workflow runs automatically whenever Claude is mentioned in PR or issue comments
-- Claude gets access to the entire PR or issue context including files, diffs, and previous comments
+- The workflow runs automatically whenever Microcode is mentioned in PR or issue comments
+- Microcode gets access to the entire PR or issue context including files, diffs, and previous comments
 
 ### Security
 
 - Our Anthropic API key is securely stored as a GitHub Actions secret
 - Only users with write access to the repository can trigger the workflow
-- All Claude runs are stored in the GitHub Actions run history
-- Claude's default tools are limited to reading/writing files and interacting with our repo by creating comments, branches, and commits.
+- All Microcode runs are stored in the GitHub Actions run history
+- Microcode's default tools are limited to reading/writing files and interacting with our repo by creating comments, branches, and commits.
 - We can add more allowed tools by adding them to the workflow file like:
 
 \`\`\`

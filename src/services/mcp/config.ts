@@ -6,7 +6,7 @@ import { dirname, join, parse } from 'path'
 import { getPlatform } from 'src/utils/platform.js'
 import type { PluginError } from '../../types/plugin.js'
 import { getPluginErrorMessage } from '../../types/plugin.js'
-import { isClaudeInChromeMCPServer } from '../../utils/microcodeInChrome/common.js'
+import { isMicrocodeInChromeMCPServer } from '../../utils/microcodeInChrome/common.js'
 import {
   getCurrentProjectConfig,
   getGlobalConfig,
@@ -40,7 +40,7 @@ import {
   type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
   logEvent,
 } from '../analytics/index.js'
-import { fetchClaudeAIMcpConfigsIfEligible } from './claudeai.js'
+import { fetchMicrocodeAIMcpConfigsIfEligible } from './microcodeai.js'
 import { expandEnvVarsInString } from './envExpansion.js'
 import {
   type ConfigScope,
@@ -195,7 +195,7 @@ export function unwrapCcrProxyUrl(url: string): string {
 /**
  * Compute a dedup signature for an MCP server config.
  * Two configs with the same signature are considered "the same server" for
- * plugin deduplication. Ignores env (plugins always inject CLAUDE_PLUGIN_ROOT)
+ * plugin deduplication. Ignores env (plugins always inject MICROCODE_PLUGIN_ROOT)
  * and headers (same URL = same server regardless of auth).
  * Returns null only for configs with neither command nor url (sdk type).
  */
@@ -278,7 +278,7 @@ export function dedupPluginMcpServers(
  * Only enabled manual servers count as dedup targets — a disabled manual server
  * mustn't suppress its connector twin, or neither runs.
  */
-export function dedupClaudeAiMcpServers(
+export function dedupMicrocodeAiMcpServers(
   microcodeAiServers: Record<string, ScopedMcpServerConfig>,
   manualServers: Record<string, ScopedMcpServerConfig>,
 ): {
@@ -513,7 +513,7 @@ function isMcpServerAllowedByPolicy(
  * returned so callers can warn the user.
  *
  * Intended for user-controlled config entry points that bypass the policy filter
- * in getClaudeCodeMcpConfigs(): --mcp-config (main.tsx) and the mcp_set_servers
+ * in getMicroCodeMcpConfigs(): --mcp-config (main.tsx) and the mcp_set_servers
  * control message (print.ts, SDK V2 Query.setMcpServers()).
  *
  * SDK-type servers are exempt — they are SDK-managed transport placeholders,
@@ -604,7 +604,7 @@ function expandEnvVars(config: McpServerConfig): {
     case 'sdk':
       expanded = config
       break
-    case 'claudeai-proxy':
+    case 'microcodeai-proxy':
       expanded = config
       break
   }
@@ -633,8 +633,8 @@ export async function addMcpConfig(
     )
   }
 
-  // Block reserved server name "claude-in-chrome"
-  if (isClaudeInChromeMCPServer(name)) {
+  // Block reserved server name "microcode-in-chrome"
+  if (isMicrocodeInChromeMCPServer(name)) {
     throw new Error(`Cannot add MCP server "${name}": this name is reserved.`)
   }
 
@@ -705,8 +705,8 @@ export async function addMcpConfig(
       throw new Error('Cannot add MCP server to scope: dynamic')
     case 'enterprise':
       throw new Error('Cannot add MCP server to scope: enterprise')
-    case 'claudeai':
-      throw new Error('Cannot add MCP server to scope: claudeai')
+    case 'microcodeai':
+      throw new Error('Cannot add MCP server to scope: microcodeai')
   }
 
   // Add based on scope
@@ -1034,7 +1034,7 @@ export function getMcpConfigByName(name: string): ScopedMcpServerConfig | null {
   const { servers: enterpriseServers } = getMcpConfigsByScope('enterprise')
 
   // When MCP is locked to plugin-only, only enterprise servers are reachable
-  // by name. User/project/local servers are blocked — same as getClaudeCodeMcpConfigs().
+  // by name. User/project/local servers are blocked — same as getMicroCodeMcpConfigs().
   if (isRestrictedToPluginOnly('mcp')) {
     return enterpriseServers[name] ?? null
   }
@@ -1068,7 +1068,7 @@ export function getMcpConfigByName(name: string): ScopedMcpServerConfig | null {
  * so the two overlap rather than serialize.
  * @returns Microcode server configurations with appropriate scopes
  */
-export async function getClaudeCodeMcpConfigs(
+export async function getMicroCodeMcpConfigs(
   dynamicServers: Record<string, ScopedMcpServerConfig> = {},
   extraDedupTargets: Promise<
     Record<string, ScopedMcpServerConfig>
@@ -1252,7 +1252,7 @@ export async function getClaudeCodeMcpConfigs(
 
 /**
  * Get all MCP configurations across all scopes, including claude.ai servers.
- * This may be slow due to network calls - use getClaudeCodeMcpConfigs() for fast startup.
+ * This may be slow due to network calls - use getMicroCodeMcpConfigs() for fast startup.
  * @returns All server configurations with appropriate scopes
  */
 export async function getAllMcpConfigs(): Promise<{
@@ -1261,30 +1261,30 @@ export async function getAllMcpConfigs(): Promise<{
 }> {
   // In enterprise mode, don't load claude.ai servers (enterprise has exclusive control)
   if (doesEnterpriseMcpConfigExist()) {
-    return getClaudeCodeMcpConfigs()
+    return getMicroCodeMcpConfigs()
   }
 
-  // Kick off the microcode.ai fetch before getClaudeCodeMcpConfigs so it overlaps
+  // Kick off the microcode.ai fetch before getMicroCodeMcpConfigs so it overlaps
   // with loadAllPluginsCacheOnly() inside. Memoized — the awaited call below is a cache hit.
-  const claudeaiPromise = fetchClaudeAIMcpConfigsIfEligible()
-  const { servers: microcodeCodeServers, errors } = await getClaudeCodeMcpConfigs(
+  const microcodeaiPromise = fetchMicrocodeAIMcpConfigsIfEligible()
+  const { servers: MicroCodeServers, errors } = await getMicroCodeMcpConfigs(
     {},
-    claudeaiPromise,
+    microcodeaiPromise,
   )
-  const { allowed: claudeaiMcpServers } = filterMcpServersByPolicy(
-    await claudeaiPromise,
+  const { allowed: microcodeaiMcpServers } = filterMcpServersByPolicy(
+    await microcodeaiPromise,
   )
 
-  // Suppress claude.ai connectors that duplicate an enabled manual server.
+  // Suppress microcode.ai connectors that duplicate an enabled manual server.
   // Keys never collide (`slack` vs `claude.ai Slack`) so the merge below
   // won't catch this — need content-based dedup by URL signature.
-  const { servers: dedupedMicrocodeAi } = dedupClaudeAiMcpServers(
-    claudeaiMcpServers,
-    microcodeCodeServers,
+  const { servers: dedupedMicrocodeAi } = dedupMicrocodeAiMcpServers(
+    microcodeaiMcpServers,
+    MicroCodeServers,
   )
 
   // Merge with claude.ai having lowest precedence
-  const servers = Object.assign({}, dedupedMicrocodeAi, microcodeCodeServers)
+  const servers = Object.assign({}, dedupedMicrocodeAi, MicroCodeServers)
 
   return { servers, errors }
 }

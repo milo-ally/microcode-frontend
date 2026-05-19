@@ -7,9 +7,9 @@ import { open, readFile, stat } from 'fs/promises'
 import { homedir as osHomedir } from 'os'
 import { join } from 'path'
 import { isFsInaccessible } from './errors.js'
-import { getLocalClaudePath } from './localInstaller.js'
+import { getLocalMicrocodePath } from './localInstaller.js'
 
-export const MICROCODE_ALIAS_REGEX = /^\s*alias\s+claude\s*=/
+export const MICROCODE_ALIAS_REGEX = /^\s*alias\s+microcode\s*=/
 
 type EnvLike = Record<string, string | undefined>
 
@@ -38,7 +38,7 @@ export function getShellConfigPaths(
 
 /**
  * Filter out installer-created microcode aliases from an array of lines
- * Only removes aliases pointing to $HOME/.microcode/local/claude
+ * Only removes aliases pointing to $HOME/.microcode/local/microcode
  * Preserves custom user aliases that point to other locations
  * Returns the filtered lines and whether our default installer alias was found
  */
@@ -52,17 +52,17 @@ export function filterMicrocodeAliases(lines: string[]): {
     if (MICROCODE_ALIAS_REGEX.test(line)) {
       // Extract the alias target - handle spaces, quotes, and various formats
       // First try with quotes
-      let match = line.match(/alias\s+claude\s*=\s*["']([^"']+)["']/)
+      let match = line.match(/alias\s+microcode\s*=\s*["']([^"']+)["']/)
       if (!match) {
         // Try without quotes (capturing until end of line or comment)
-        match = line.match(/alias\s+claude\s*=\s*([^#\n]+)/)
+        match = line.match(/alias\s+microcode\s*=\s*([^#\n]+)/)
       }
 
       if (match && match[1]) {
         const target = match[1].trim()
         // Only remove if it points to the installer location
         // The installer always creates aliases with the full expanded path
-        if (target === getLocalClaudePath()) {
+        if (target === getLocalMicrocodePath()) {
           hadAlias = true
           return false // Remove this line
         }
@@ -123,7 +123,7 @@ export async function findMicrocodeAlias(
     for (const line of lines) {
       if (MICROCODE_ALIAS_REGEX.test(line)) {
         // Extract the alias target
-        const match = line.match(/alias\s+claude=["']?([^"'\s]+)/)
+        const match = line.match(/alias\s+microcode=["']?([^"'\s]+)/)
         if (match && match[1]) {
           return match[1]
         }

@@ -4,8 +4,8 @@
  * Reads enterprise settings from OS-level MDM configuration:
  * - macOS: `com.anthropic.microcode` preference domain
  *   (MDM profiles at /Library/Managed Preferences/ only — not user-writable ~/Library/Preferences/)
- * - Windows: `HKLM\SOFTWARE\Policies\ClaudeCode` (admin-only)
- *   and `HKCU\SOFTWARE\Policies\ClaudeCode` (user-writable, lowest priority)
+ * - Windows: `HKLM\SOFTWARE\Policies\MicroCode` (admin-only)
+ *   and `HKCU\SOFTWARE\Policies\MicroCode` (user-writable, lowest priority)
  * - Linux: No MDM equivalent (uses /etc/microcode/managed-settings.json instead)
  *
  * Policy settings use "first source wins" — the highest-priority source that exists

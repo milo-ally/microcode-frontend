@@ -4,7 +4,7 @@ import { execa } from 'execa'
 import { mkdir, stat } from 'fs/promises'
 import memoize from 'lodash-es/memoize.js'
 import { join } from 'path'
-import { CLAUDE_AI_PROFILE_SCOPE } from 'src/constants/oauth.js'
+import { MICROCODE_AI_PROFILE_SCOPE } from 'src/constants/oauth.js'
 import {
   type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
   logEvent,
@@ -27,7 +27,7 @@ import {
 import {
   isOAuthTokenExpired,
   refreshOAuthToken,
-  shouldUseClaudeAIAuth,
+  shouldUseMicrocodeAIAuth,
 } from '../services/oauth/client.js'
 import { getOauthProfileFromOauthToken } from '../services/oauth/getOauthProfile.js'
 import type { OAuthTokens, SubscriptionType } from '../services/oauth/types.js'
@@ -86,7 +86,7 @@ import { clearToolSchemaCache } from './toolSchemaCache.js'
 const DEFAULT_API_KEY_HELPER_TTL = 5 * 60 * 1000
 
 /**
- * CCR and Claude Desktop spawn the CLI with OAuth and should never fall back
+ * CCR and Microcode Desktop spawn the CLI with OAuth and should never fall back
  * to the user's ~/.microcode/settings.json API-key config (apiKeyHelper,
  * env.ANTHROPIC_API_KEY, env.ANTHROPIC_AUTH_TOKEN). Those settings exist for
  * the user's terminal CLI, not managed sessions. Without this guard, a user
@@ -96,7 +96,7 @@ const DEFAULT_API_KEY_HELPER_TTL = 5 * 60 * 1000
 function isManagedOAuthContext(): boolean {
   return (
     isEnvTruthy(process.env.MICROCODE_REMOTE) ||
-    process.env.MICROCODE_ENTRYPOINT === 'claude-desktop'
+    process.env.MICROCODE_ENTRYPOINT === 'microcode-desktop'
   )
 }
 
@@ -228,8 +228,8 @@ export function getAuthTokenSource() {
     return { source: 'apiKeyHelper' as const, hasToken: true }
   }
 
-  const oauthTokens = getClaudeAIOAuthTokens()
-  if (shouldUseClaudeAIAuth(oauthTokens?.scopes) && oauthTokens?.accessToken) {
+  const oauthTokens = getMicrocodeAIOAuthTokens()
+  if (shouldUseMicrocodeAIAuth(oauthTokens?.scopes) && oauthTokens?.accessToken) {
     return { source: 'claude.ai' as const, hasToken: true }
   }
 
@@ -1245,7 +1245,7 @@ export function saveOAuthTokensIfNeeded(tokens: OAuthTokens): {
   success: boolean
   warning?: string
 } {
-  if (!shouldUseClaudeAIAuth(tokens.scopes)) {
+  if (!shouldUseMicrocodeAIAuth(tokens.scopes)) {
     logEvent('tengu_oauth_tokens_not_microcode_ai', {})
     return { success: true }
   }
@@ -1286,7 +1286,7 @@ export function saveOAuthTokensIfNeeded(tokens: OAuthTokens): {
       logEvent('tengu_oauth_tokens_save_failed', { storageBackend })
     }
 
-    getClaudeAIOAuthTokens.cache?.clear?.()
+    getMicrocodeAIOAuthTokens.cache?.clear?.()
     clearBetasCaches()
     clearToolSchemaCache()
     return updateStatus
@@ -1302,7 +1302,7 @@ export function saveOAuthTokensIfNeeded(tokens: OAuthTokens): {
   }
 }
 
-export const getClaudeAIOAuthTokens = memoize((): OAuthTokens | null => {
+export const getMicrocodeAIOAuthTokens = memoize((): OAuthTokens | null => {
   // --bare: API-key-only. No OAuth env tokens, no keychain, no credentials file.
   if (isBareMode()) return null
 
@@ -1356,7 +1356,7 @@ export const getClaudeAIOAuthTokens = memoize((): OAuthTokens | null => {
  * server (e.g., due to clock corrections after token was issued).
  */
 export function clearOAuthTokenCache(): void {
-  getClaudeAIOAuthTokens.cache?.clear?.()
+  getMicrocodeAIOAuthTokens.cache?.clear?.()
   clearKeychainCache()
 }
 
@@ -1381,7 +1381,7 @@ async function invalidateOAuthCacheIfDiskChanged(): Promise<void> {
     // the memoize so it delegates to the keychain cache's 30s TTL instead
     // of caching forever on top. `security find-generic-password` is
     // ~15ms; bounded to once per 30s by the keychain cache.
-    getClaudeAIOAuthTokens.cache?.clear?.()
+    getMicrocodeAIOAuthTokens.cache?.clear?.()
   }
 }
 
@@ -1425,7 +1425,7 @@ async function handleOAuth401ErrorImpl(
 ): Promise<boolean> {
   // Clear caches and re-read from keychain (async — sync read blocks ~100ms/call)
   clearOAuthTokenCache()
-  const currentTokens = await getClaudeAIOAuthTokensAsync()
+  const currentTokens = await getMicrocodeAIOAuthTokensAsync()
 
   if (!currentTokens?.refreshToken) {
     return false
@@ -1446,7 +1446,7 @@ async function handleOAuth401ErrorImpl(
  * Delegates to the sync memoized version for env var / file descriptor tokens
  * (which don't hit the keychain), and only uses async for storage reads.
  */
-export async function getClaudeAIOAuthTokensAsync(): Promise<OAuthTokens | null> {
+export async function getMicrocodeAIOAuthTokensAsync(): Promise<OAuthTokens | null> {
   if (isBareMode()) return null
 
   // Env var and FD tokens are sync and don't hit the keychain
@@ -1454,7 +1454,7 @@ export async function getClaudeAIOAuthTokensAsync(): Promise<OAuthTokens | null>
     process.env.MICROCODE_OAUTH_TOKEN ||
     getOAuthTokenFromFileDescriptor()
   ) {
-    return getClaudeAIOAuthTokens()
+    return getMicrocodeAIOAuthTokens()
   }
 
   try {
@@ -1504,7 +1504,7 @@ async function checkAndRefreshOAuthTokenIfNeededImpl(
 
   // First check if token is expired with cached value
   // Skip this check if force=true (server already told us token is bad)
-  const tokens = getClaudeAIOAuthTokens()
+  const tokens = getMicrocodeAIOAuthTokens()
   if (!force) {
     if (!tokens?.refreshToken || !isOAuthTokenExpired(tokens.expiresAt)) {
       return false
@@ -1515,15 +1515,15 @@ async function checkAndRefreshOAuthTokenIfNeededImpl(
     return false
   }
 
-  if (!shouldUseClaudeAIAuth(tokens.scopes)) {
+  if (!shouldUseMicrocodeAIAuth(tokens.scopes)) {
     return false
   }
 
   // Re-read tokens async to check if they're still expired
   // Another process might have refreshed them
-  getClaudeAIOAuthTokens.cache?.clear?.()
+  getMicrocodeAIOAuthTokens.cache?.clear?.()
   clearKeychainCache()
-  const freshTokens = await getClaudeAIOAuthTokensAsync()
+  const freshTokens = await getMicrocodeAIOAuthTokensAsync()
   if (
     !freshTokens?.refreshToken ||
     !isOAuthTokenExpired(freshTokens.expiresAt)
@@ -1566,9 +1566,9 @@ async function checkAndRefreshOAuthTokenIfNeededImpl(
   }
   try {
     // Check one more time after acquiring lock
-    getClaudeAIOAuthTokens.cache?.clear?.()
+    getMicrocodeAIOAuthTokens.cache?.clear?.()
     clearKeychainCache()
-    const lockedTokens = await getClaudeAIOAuthTokensAsync()
+    const lockedTokens = await getMicrocodeAIOAuthTokensAsync()
     if (
       !lockedTokens?.refreshToken ||
       !isOAuthTokenExpired(lockedTokens.expiresAt)
@@ -1579,25 +1579,25 @@ async function checkAndRefreshOAuthTokenIfNeededImpl(
 
     logEvent('tengu_oauth_token_refresh_starting', {})
     const refreshedTokens = await refreshOAuthToken(lockedTokens.refreshToken, {
-      // For Claude.ai subscribers, omit scopes so the default
-      // CLAUDE_AI_OAUTH_SCOPES applies — this allows scope expansion
+      // For Microcode.ai subscribers, omit scopes so the default
+      // MICROCODE_AI_OAUTH_SCOPES applies — this allows scope expansion
       // (e.g. adding user:file_upload) on refresh without re-login.
-      scopes: shouldUseClaudeAIAuth(lockedTokens.scopes)
+      scopes: shouldUseMicrocodeAIAuth(lockedTokens.scopes)
         ? undefined
         : lockedTokens.scopes,
     })
     saveOAuthTokensIfNeeded(refreshedTokens)
 
     // Clear the cache after refreshing token
-    getClaudeAIOAuthTokens.cache?.clear?.()
+    getMicrocodeAIOAuthTokens.cache?.clear?.()
     clearKeychainCache()
     return true
   } catch (error) {
     logError(error)
 
-    getClaudeAIOAuthTokens.cache?.clear?.()
+    getMicrocodeAIOAuthTokens.cache?.clear?.()
     clearKeychainCache()
-    const currentTokens = await getClaudeAIOAuthTokensAsync()
+    const currentTokens = await getMicrocodeAIOAuthTokensAsync()
     if (currentTokens && !isOAuthTokenExpired(currentTokens.expiresAt)) {
       logEvent('tengu_oauth_token_refresh_race_recovered', {})
       return true
@@ -1611,12 +1611,12 @@ async function checkAndRefreshOAuthTokenIfNeededImpl(
   }
 }
 
-export function isClaudeAISubscriber(): boolean {
+export function isMicrocodeAISubscriber(): boolean {
   if (!isAnthropicAuthEnabled()) {
     return false
   }
 
-  return shouldUseClaudeAIAuth(getClaudeAIOAuthTokens()?.scopes)
+  return shouldUseMicrocodeAIAuth(getMicrocodeAIOAuthTokens()?.scopes)
 }
 
 /**
@@ -1629,13 +1629,13 @@ export function isClaudeAISubscriber(): boolean {
  */
 export function hasProfileScope(): boolean {
   return (
-    getClaudeAIOAuthTokens()?.scopes?.includes(CLAUDE_AI_PROFILE_SCOPE) ?? false
+    getMicrocodeAIOAuthTokens()?.scopes?.includes(MICROCODE_AI_PROFILE_SCOPE) ?? false
   )
 }
 
 export function is1PApiCustomer(): boolean {
   // 1P API customers are users who are NOT:
-  // 1. Claude.ai subscribers (Max, Pro, Enterprise, Team)
+  // 1. Microcode.ai subscribers (Max, Pro, Enterprise, Team)
   // 2. Vertex AI users
   // 3. AWS Bedrock users
   // 4. Foundry users
@@ -1649,8 +1649,8 @@ export function is1PApiCustomer(): boolean {
     return false
   }
 
-  // Exclude Claude.ai subscribers
-  if (isClaudeAISubscriber()) {
+  // Exclude Microcode.ai subscribers
+  if (isMicrocodeAISubscriber()) {
     return false
   }
 
@@ -1674,8 +1674,8 @@ export function isOverageProvisioningAllowed(): boolean {
   const accountInfo = getOauthAccountInfo()
   const billingType = accountInfo?.billingType
 
-  // Must be a Claude subscriber with a supported subscription type
-  if (!isClaudeAISubscriber() || !billingType) {
+  // Must be a Microcode subscriber with a supported subscription type
+  if (!isMicrocodeAISubscriber() || !billingType) {
     return false
   }
 
@@ -1718,7 +1718,7 @@ export function getSubscriptionType(): SubscriptionType | null {
   if (!isAnthropicAuthEnabled()) {
     return null
   }
-  const oauthTokens = getClaudeAIOAuthTokens()
+  const oauthTokens = getMicrocodeAIOAuthTokens()
   if (!oauthTokens) {
     return null
   }
@@ -1753,7 +1753,7 @@ export function getRateLimitTier(): string | null {
   if (!isAnthropicAuthEnabled()) {
     return null
   }
-  const oauthTokens = getClaudeAIOAuthTokens()
+  const oauthTokens = getMicrocodeAIOAuthTokens()
   if (!oauthTokens) {
     return null
   }
@@ -1766,15 +1766,15 @@ export function getSubscriptionName(): string {
 
   switch (subscriptionType) {
     case 'enterprise':
-      return 'Claude Enterprise'
+      return 'Microcode Enterprise'
     case 'team':
-      return 'Claude Team'
+      return 'Microcode Team'
     case 'max':
-      return 'Claude Max'
+      return 'Microcode Max'
     case 'pro':
-      return 'Claude Pro'
+      return 'Microcode Pro'
     default:
-      return 'Claude API'
+      return 'Microcode API'
   }
 }
 
@@ -1896,7 +1896,7 @@ function isConsumerPlan(plan: SubscriptionType): plan is 'max' | 'pro' {
 export function isConsumerSubscriber(): boolean {
   const subscriptionType = getSubscriptionType()
   return (
-    isClaudeAISubscriber() &&
+    isMicrocodeAISubscriber() &&
     subscriptionType !== null &&
     isConsumerPlan(subscriptionType)
   )
@@ -1923,7 +1923,7 @@ export function getAccountInformation() {
     authTokenSource === 'MICROCODE_OAUTH_TOKEN_FILE_DESCRIPTOR'
   ) {
     accountInfo.tokenSource = authTokenSource
-  } else if (isClaudeAISubscriber()) {
+  } else if (isMicrocodeAISubscriber()) {
     accountInfo.subscription = getSubscriptionName()
   } else {
     accountInfo.tokenSource = authTokenSource
@@ -1992,7 +1992,7 @@ export async function validateForceLoginOrg(): Promise<OrgValidationResult> {
   // No-op for env-var tokens (refreshToken is null).
   await checkAndRefreshOAuthTokenIfNeeded()
 
-  const tokens = getClaudeAIOAuthTokens()
+  const tokens = getMicrocodeAIOAuthTokens()
   if (!tokens) {
     return { valid: true }
   }

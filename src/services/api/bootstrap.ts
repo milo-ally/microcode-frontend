@@ -2,7 +2,7 @@ import axios from 'axios'
 import isEqual from 'lodash-es/isEqual.js'
 import {
   getAnthropicApiKey,
-  getClaudeAIOAuthTokens,
+  getMicrocodeAIOAuthTokens,
   hasProfileScope,
 } from 'src/utils/auth.js'
 import { z } from 'zod'
@@ -14,7 +14,7 @@ import { lazySchema } from '../../utils/lazySchema.js'
 import { logError } from '../../utils/log.js'
 import { getAPIProvider } from '../../utils/model/providers.js'
 import { isEssentialTrafficOnly } from '../../utils/privacyLevel.js'
-import { getClaudeCodeUserAgent } from '../../utils/userAgent.js'
+import { getMicroCodeUserAgent } from '../../utils/userAgent.js'
 
 const bootstrapResponseSchema = lazySchema(() =>
   z.object({
@@ -54,7 +54,7 @@ async function fetchBootstrapAPI(): Promise<BootstrapResponse | null> {
   // lack it and would 403). Fall back to API key auth for console users.
   const apiKey = getAnthropicApiKey()
   const hasUsableOAuth =
-    getClaudeAIOAuthTokens()?.accessToken && hasProfileScope()
+    getMicrocodeAIOAuthTokens()?.accessToken && hasProfileScope()
   if (!hasUsableOAuth && !apiKey) {
     logForDebugging('[Bootstrap] Skipped: no usable OAuth or API key')
     return null
@@ -67,7 +67,7 @@ async function fetchBootstrapAPI(): Promise<BootstrapResponse | null> {
   try {
     return await withOAuth401Retry(async () => {
       // Re-read OAuth each call so the retry picks up the refreshed token.
-      const token = getClaudeAIOAuthTokens()?.accessToken
+      const token = getMicrocodeAIOAuthTokens()?.accessToken
       let authHeaders: Record<string, string>
       if (token && hasProfileScope()) {
         authHeaders = {
@@ -85,7 +85,7 @@ async function fetchBootstrapAPI(): Promise<BootstrapResponse | null> {
       const response = await axios.get<unknown>(endpoint, {
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': getClaudeCodeUserAgent(),
+          'User-Agent': getMicroCodeUserAgent(),
           ...authHeaders,
         },
         timeout: 5000,

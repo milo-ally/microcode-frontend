@@ -27,7 +27,7 @@ import {
 import type { Message } from '../types/message.js'
 import {
   checkAndRefreshOAuthTokenIfNeeded,
-  getClaudeAIOAuthTokens,
+  getMicrocodeAIOAuthTokens,
   handleOAuth401Error,
 } from '../utils/auth.js'
 import { getGlobalConfig, saveGlobalConfig } from '../utils/config.js'
@@ -161,7 +161,7 @@ export async function initReplBridge(
     return null
   }
 
-  // When CLAUDE_BRIDGE_OAUTH_TOKEN is set (ant-only local dev), the bridge
+  // When MICROCODE_BRIDGE_OAUTH_TOKEN is set (ant-only local dev), the bridge
   // uses that token directly via getBridgeAccessToken() — keychain state is
   // irrelevant. Skip 2b/2c to preserve that decoupling: an expired keychain
   // token shouldn't block a bridge connection that doesn't use it.
@@ -178,7 +178,7 @@ export async function initReplBridge(
     if (
       cfg.bridgeOauthDeadExpiresAt != null &&
       (cfg.bridgeOauthDeadFailCount ?? 0) >= 3 &&
-      getClaudeAIOAuthTokens()?.expiresAt === cfg.bridgeOauthDeadExpiresAt
+      getMicrocodeAIOAuthTokens()?.expiresAt === cfg.bridgeOauthDeadExpiresAt
     ) {
       logForDebugging(
         `[bridge:repl] Skipping: cross-process backoff (dead token seen ${cfg.bridgeOauthDeadFailCount} times)`,
@@ -215,7 +215,7 @@ export async function initReplBridge(
     // + transient refresh endpoint blip (5xx/timeout/wifi-reconnect) would
     // falsely trip a buffered check; the still-valid token would connect fine.
     // Check actual expiry instead: past-expiry AND refresh-failed → truly dead.
-    const tokens = getClaudeAIOAuthTokens()
+    const tokens = getMicrocodeAIOAuthTokens()
     if (tokens && tokens.expiresAt !== null && tokens.expiresAt <= Date.now()) {
       logBridgeSkip(
         'oauth_expired_unrefreshable',

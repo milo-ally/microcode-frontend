@@ -109,7 +109,7 @@ function pollSleepDetectionThresholdMs(backoff: BackoffConfig): number {
 }
 
 /**
- * Returns the args that must precede CLI flags when spawning a child claude
+ * Returns the args that must precede CLI flags when spawning a child microcode
  * process. In compiled binaries, process.execPath is the microcode binary itself
  * and args go directly to it. In npm installs (node running cli.js),
  * process.execPath is the node runtime — the child spawn must pass the script
@@ -1940,11 +1940,11 @@ ${serverOptions}
 DESCRIPTION
   Remote Control allows you to control sessions on your local device from
   claude.ai/code (https://claude.ai/code). Run this command in the
-  directory you want to work in, then connect from the Claude app or web.
+  directory you want to work in, then connect from the Microcode app or web.
 ${serverDescription}
 NOTES
-  - You must be logged in with a Claude account that has a subscription
-  - Run \`claude\` first in the directory to accept the workspace trust dialog
+  - You must be logged in with a Microcode account that has a subscription
+  - Run \`microcode\` first in the directory to accept the workspace trust dialog
 ${serverNote}`
   // biome-ignore lint/suspicious/noConsole: intentional help output
   console.log(help)
@@ -2086,7 +2086,7 @@ export async function bridgeMain(args: string[]): Promise<void> {
   if (!checkHasTrustDialogAccepted()) {
     // biome-ignore lint/suspicious/noConsole:: intentional console output
     console.error(
-      `Error: Workspace not trusted. Please run \`claude\` in ${dir} first to review and accept the workspace trust dialog.`,
+      `Error: Workspace not trusted. Please run \`microcode\` in ${dir} first to review and accept the workspace trust dialog.`,
     )
     // eslint-disable-next-line custom-rules/no-process-exit
     process.exit(1)
@@ -2122,7 +2122,7 @@ export async function bridgeMain(args: string[]): Promise<void> {
     })
     // biome-ignore lint/suspicious/noConsole:: intentional console output
     console.log(
-      '\nRemote Control lets you access this CLI session from the web (claude.ai/code)\nor the Claude app, so you can pick up where you left off on any device.\n\nYou can disconnect remote access anytime by running /remote-control again.\n',
+      '\nRemote Control lets you access this CLI session from the web (claude.ai/code)\nor the Microcode app, so you can pick up where you left off on any device.\n\nYou can disconnect remote access anytime by running /remote-control again.\n',
     )
     const answer = await new Promise<string>(resolve => {
       rl.question('Enable Remote Control? (y/n) ', resolve)
@@ -2175,7 +2175,7 @@ export async function bridgeMain(args: string[]): Promise<void> {
   }
 
   // In production, baseUrl is the Anthropic API (from OAuth config).
-  // CLAUDE_BRIDGE_BASE_URL overrides this for ant local dev only.
+  // MICROCODE_BRIDGE_BASE_URL overrides this for ant local dev only.
   const baseUrl = getBridgeBaseUrl()
 
   // For non-localhost targets, require HTTPS to protect credentials.
@@ -2195,8 +2195,8 @@ export async function bridgeMain(args: string[]): Promise<void> {
   // Session ingress URL for WebSocket connections. In production this is the
   // same as baseUrl (Envoy routes /v1/session_ingress/* to session-ingress).
   // Locally, session-ingress runs on a different port (9413) than the
-  // contain-provide-api (8211), so CLAUDE_BRIDGE_SESSION_INGRESS_URL must be
-  // set explicitly. Ant-only, matching CLAUDE_BRIDGE_BASE_URL.
+  // contain-provide-api (8211), so MICROCODE_BRIDGE_SESSION_INGRESS_URL must be
+  // set explicitly. Ant-only, matching MICROCODE_BRIDGE_BASE_URL.
   const sessionIngressUrl =
     process.env.USER_TYPE === 'ant' &&
     process.env.MICROCODE_BRIDGE_SESSION_INGRESS_URL
@@ -2252,7 +2252,7 @@ export async function bridgeMain(args: string[]): Promise<void> {
     })
     // biome-ignore lint/suspicious/noConsole: intentional dialog output
     console.log(
-      `\nClaude Remote Control is launching in spawn mode which lets you create new sessions in this project from Microcode on Web or your Mobile app. Learn more here: https://code.microcode.com/docs/en/remote-control\n\n` +
+      `\nMicrocode Remote Control is launching in spawn mode which lets you create new sessions in this project from Microcode on Web or your Mobile app. Learn more here: https://code.microcode.com/docs/en/remote-control\n\n` +
         `Spawn mode for this project:\n` +
         `  [1] same-dir \u2014 sessions share the current directory (default)\n` +
         `  [2] worktree \u2014 each session gets an isolated git worktree\n\n` +
@@ -2392,7 +2392,7 @@ export async function bridgeMain(args: string[]): Promise<void> {
       }
       // biome-ignore lint/suspicious/noConsole: intentional error output
       console.error(
-        `Error: Session ${resumeSessionId} not found. It may have been archived or expired, or your login may have lapsed (run \`claude /login\`).`,
+        `Error: Session ${resumeSessionId} not found. It may have been archived or expired, or your login may have lapsed (run \`microcode /login\`).`,
       )
       // eslint-disable-next-line custom-rules/no-process-exit
       process.exit(1)
@@ -2830,7 +2830,7 @@ export async function runBridgeHeadless(
 
   if (!checkHasTrustDialogAccepted()) {
     throw new BridgeHeadlessPermanentError(
-      `Workspace not trusted: ${dir}. Run \`claude\` in that directory first to accept the trust dialog.`,
+      `Workspace not trusted: ${dir}. Run \`microcode\` in that directory first to accept the trust dialog.`,
     )
   }
 

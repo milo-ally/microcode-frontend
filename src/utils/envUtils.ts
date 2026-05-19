@@ -2,7 +2,7 @@ import memoize from 'lodash-es/memoize.js'
 import { homedir } from 'os'
 import { join } from 'path'
 
-// Memoized: 150+ callers, many on hot paths. Keyed off CLAUDE_CONFIG_DIR so
+// Memoized: 150+ callers, many on hot paths. Keyed off MICROCODE_CONFIG_DIR so
 // tests that change the env var get a fresh value without explicit cache.clear.
 export const getMicrocodeConfigHomeDir = memoize(
   (): string => {
@@ -106,7 +106,7 @@ export function getDefaultVertexRegion(): string {
 
 /**
  * Check if bash commands should maintain project working directory (reset to original after each command)
- * @returns true if CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR is set to a truthy value
+ * @returns true if MICROCODE_BASH_MAINTAIN_PROJECT_WORKING_DIR is set to a truthy value
  */
 export function shouldMaintainProjectWorkingDir(): boolean {
   return isEnvTruthy(process.env.MICROCODE_BASH_MAINTAIN_PROJECT_WORKING_DIR)

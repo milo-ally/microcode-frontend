@@ -63,5 +63,5 @@ export const SYNC_KEYS = {
   USER_MEMORY: '~/.microcode/MICROCODE.md',
   projectSettings: (projectId: string) =>
     `projects/${projectId}/.microcode/settings.local.json`,
-  projectMemory: (projectId: string) => `projects/${projectId}/CLAUDE.local.md`,
+  projectMemory: (projectId: string) => `projects/${projectId}/MICROCODE.local.md`,
 } as const

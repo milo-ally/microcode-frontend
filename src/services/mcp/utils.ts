@@ -6,7 +6,7 @@ import type { AgentMcpServerInfo } from '../../components/mcp/types.js'
 import type { Tool } from '../../Tool.js'
 import type { AgentDefinition } from '../../tools/AgentTool/loadAgentsDir.js'
 import { getCwd } from '../../utils/cwd.js'
-import { getGlobalClaudeFile } from '../../utils/env.js'
+import { getGlobalMicrocodeFile } from '../../utils/env.js'
 import { isSettingSourceEnabled } from '../../utils/settings/constants.js'
 import {
   getSettings_DEPRECATED,
@@ -263,11 +263,11 @@ export function isMcpCommand(command: Command): boolean {
 export function describeMcpConfigFilePath(scope: ConfigScope): string {
   switch (scope) {
     case 'user':
-      return getGlobalClaudeFile()
+      return getGlobalMicrocodeFile()
     case 'project':
       return join(getCwd(), '.mcp.json')
     case 'local':
-      return `${getGlobalClaudeFile()} [project: ${getCwd()}]`
+      return `${getGlobalMicrocodeFile()} [project: ${getCwd()}]`
     case 'dynamic':
       return 'Dynamically configured'
     case 'enterprise':

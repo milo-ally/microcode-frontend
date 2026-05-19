@@ -38,7 +38,7 @@ export class DiagnosticTrackingService {
   private lastProcessedTimestamps: Map<string, number> = new Map()
 
   // Track which files have received right file diagnostics and if they've changed
-  // Map<normalizedPath, lastClaudeFsRightDiagnostics>
+  // Map<normalizedPath, lastMicrocodeFsRightDiagnostics>
   private rightFileDiagnosticsState: Map<string, Diagnostic[]> = new Map()
 
   static getInstance(): DiagnosticTrackingService {
@@ -211,7 +211,7 @@ export class DiagnosticTrackingService {
       .filter(file => this.baseline.has(this.normalizeFileUri(file.uri)))
       .filter(file => file.uri.startsWith('file://'))
 
-    const diagnosticsForClaudeFsRightUrisWithBaselinesMap = new Map<
+    const diagnosticsForMicrocodeFsRightUrisWithBaselinesMap = new Map<
       string,
       DiagnosticFile
     >()
@@ -219,7 +219,7 @@ export class DiagnosticTrackingService {
       .filter(file => this.baseline.has(this.normalizeFileUri(file.uri)))
       .filter(file => file.uri.startsWith('_microcode_fs_right:'))
       .forEach(file => {
-        diagnosticsForClaudeFsRightUrisWithBaselinesMap.set(
+        diagnosticsForMicrocodeFsRightUrisWithBaselinesMap.set(
           this.normalizeFileUri(file.uri),
           file,
         )
@@ -234,7 +234,7 @@ export class DiagnosticTrackingService {
 
       // Get the _microcode_fs_right file if it exists
       const microcodeFsRightFile =
-        diagnosticsForClaudeFsRightUrisWithBaselinesMap.get(normalizedPath)
+        diagnosticsForMicrocodeFsRightUrisWithBaselinesMap.get(normalizedPath)
 
       // Determine which file to use based on the state of right file diagnostics
       let fileToUse = file

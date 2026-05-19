@@ -26,7 +26,7 @@ export function WelcomeV2() {
   if (["light", "light-daltonized", "light-ansi"].includes(theme)) {
     let t0, t1, t2, t3, t4, t5, t6, t7, t8;
     if ($[2] === Symbol.for("react.memo_cache_sentinel")) {
-      t0 = <Text><Text color="claude">Welcome to Microcode </Text><Text dimColor>v{MACRO.VERSION} </Text></Text>;
+      t0 = <Text><Text color="microcode">Welcome to Microcode </Text><Text dimColor>v{MACRO.VERSION} </Text></Text>;
       t1 = <Text>{"…".repeat(58)}</Text>;
       t2 = <Text>{"                                                          "}</Text>;
       t3 = <Text>{"     *                                       ░░░            "}</Text>;
@@ -71,7 +71,7 @@ export function WelcomeV2() {
   // Dark theme
   let t0, t1, t2, t3, t4, t5, t6;
   if ($[18] === Symbol.for("react.memo_cache_sentinel")) {
-    t0 = <Text><Text color="claude">Welcome to Microcode </Text><Text dimColor>v{MACRO.VERSION} </Text></Text>;
+    t0 = <Text><Text color="microcode">Welcome to Microcode </Text><Text dimColor>v{MACRO.VERSION} </Text></Text>;
     t1 = <Text>{"…".repeat(58)}</Text>;
     t2 = <Text>{"                                                          "}</Text>;
     t3 = <Text>{"     *                                       ░░░            "}</Text>;
@@ -122,7 +122,7 @@ function AppleTerminalWelcomeV2(t0) {
 
   let t1, t2, t3;
   if ($[0] !== welcomeMessage) {
-    t1 = <Text color="claude">{welcomeMessage} </Text>;
+    t1 = <Text color="microcode">{welcomeMessage} </Text>;
     t2 = <Text dimColor>v{MACRO.VERSION} </Text>;
     t3 = <Text>{t1}{t2}</Text>;
     $[0] = welcomeMessage; $[1] = t1; $[2] = t2; $[3] = t3; $[4] = t3;

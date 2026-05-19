@@ -9,12 +9,12 @@ import {
   logEvent,
 } from '../../services/analytics/index.js'
 import { getSSLErrorHint } from '../../services/api/errorUtils.js'
-import { fetchAndStoreClaudeCodeFirstTokenDate } from '../../services/api/firstTokenDate.js'
+import { fetchAndStoreMicroCodeFirstTokenDate } from '../../services/api/firstTokenDate.js'
 import {
   createAndStoreApiKey,
   fetchAndStoreUserRoles,
   refreshOAuthToken,
-  shouldUseClaudeAIAuth,
+  shouldUseMicrocodeAIAuth,
   storeOAuthAccountInfo,
 } from '../../services/oauth/client.js'
 import { getOauthProfileFromOauthToken } from '../../services/oauth/getOauthProfile.js'
@@ -96,8 +96,8 @@ export async function installOAuthTokens(tokens: OAuthTokens): Promise<void> {
     logForDebugging(String(err), { level: 'error' }),
   )
 
-  if (shouldUseClaudeAIAuth(tokens.scopes)) {
-    await fetchAndStoreClaudeCodeFirstTokenDate().catch(err =>
+  if (shouldUseMicrocodeAIAuth(tokens.scopes)) {
+    await fetchAndStoreMicroCodeFirstTokenDate().catch(err =>
       logForDebugging(String(err), { level: 'error' }),
     )
   } else {
@@ -134,7 +134,7 @@ export async function authLogin({
   const settings = getInitialSettings()
   // forceLoginMethod is a hard constraint (enterprise setting) — matches ConsoleOAuthFlow behavior.
   // Without it, --console selects Console; --claudeai (or no flag) selects claude.ai.
-  const loginWithClaudeAi = settings.forceLoginMethod
+  const loginWithMicrocodeAi = settings.forceLoginMethod
     ? settings.forceLoginMethod === 'claudeai'
     : !useConsole
   const orgUUID = settings.forceLoginOrgUUID
@@ -175,7 +175,7 @@ export async function authLogin({
       })
 
       logEvent('tengu_oauth_success', {
-        loginWithClaudeAi: shouldUseClaudeAIAuth(tokens.scopes),
+        loginWithMicrocodeAi: shouldUseMicrocodeAIAuth(tokens.scopes),
       })
       process.stdout.write('Login successful.\n')
       process.exit(0)
@@ -194,7 +194,7 @@ export async function authLogin({
   const oauthService = new OAuthService()
 
   try {
-    logEvent('tengu_oauth_flow_start', { loginWithClaudeAi })
+    logEvent('tengu_oauth_flow_start', { loginWithMicrocodeAi })
 
     const result = await oauthService.startOAuthFlow(
       async url => {
@@ -202,7 +202,7 @@ export async function authLogin({
         process.stdout.write(`If the browser didn't open, visit: ${url}\n`)
       },
       {
-        loginWithClaudeAi,
+        loginWithMicrocodeAi,
         loginHint: email,
         loginMethod: resolvedLoginMethod,
         orgUUID,
@@ -217,7 +217,7 @@ export async function authLogin({
       process.exit(1)
     }
 
-    logEvent('tengu_oauth_success', { loginWithClaudeAi })
+    logEvent('tengu_oauth_success', { loginWithMicrocodeAi })
 
     process.stdout.write('Login successful.\n')
     process.exit(0)

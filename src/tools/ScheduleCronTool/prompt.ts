@@ -75,10 +75,10 @@ export function buildCronCreatePrompt(durableEnabled: boolean): string {
   const durabilitySection = durableEnabled
     ? `## Durability
 
-By default (durable: false) the job lives only in this Microcode session — nothing is written to disk, and the job is gone when Claude exits. Pass durable: true to write to .microcode/scheduled_tasks.json so the job survives restarts. Only use durable: true when the user explicitly asks for the task to persist ("keep doing this every day", "set this up permanently"). Most "remind me in 5 minutes" / "check back in an hour" requests should stay session-only.`
+By default (durable: false) the job lives only in this Microcode session — nothing is written to disk, and the job is gone when Microcode exits. Pass durable: true to write to .microcode/scheduled_tasks.json so the job survives restarts. Only use durable: true when the user explicitly asks for the task to persist ("keep doing this every day", "set this up permanently"). Most "remind me in 5 minutes" / "check back in an hour" requests should stay session-only.`
     : `## Session-only
 
-Jobs live only in this Microcode session — nothing is written to disk, and the job is gone when Claude exits.`
+Jobs live only in this Microcode session — nothing is written to disk, and the job is gone when Microcode exits.`
 
   const durableRuntimeNote = durableEnabled
     ? 'Durable jobs persist to .microcode/scheduled_tasks.json and survive session restarts — on next launch they resume automatically. One-shot durable tasks that were missed while the REPL was closed are surfaced for catch-up. Session-only jobs die with the process. '

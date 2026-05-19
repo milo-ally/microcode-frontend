@@ -810,14 +810,14 @@ async function execCommandHook(
       ? (p: string) => windowsPathToPosixPath(p)
       : (p: string) => p
 
-  // Set CLAUDE_PROJECT_DIR to the stable project root (not the worktree path).
+  // Set MICROCODE_PROJECT_DIR to the stable project root (not the worktree path).
   // getProjectRoot() is never updated when entering a worktree, so hooks that
-  // reference $CLAUDE_PROJECT_DIR always resolve relative to the real repo root.
+  // reference $MICROCODE_PROJECT_DIR always resolve relative to the real repo root.
   const projectDir = getProjectRoot()
 
-  // Substitute ${CLAUDE_PLUGIN_ROOT} and ${user_config.X} in the command string.
+  // Substitute ${MICROCODE_PLUGIN_ROOT} and ${user_config.X} in the command string.
   // Order matches MCP/LSP (plugin vars FIRST, then user config) so a user-
-  // entered value containing the literal text ${CLAUDE_PLUGIN_ROOT} is treated
+  // entered value containing the literal text ${MICROCODE_PLUGIN_ROOT} is treated
   // as opaque — not re-interpreted as a template.
   let command = hook.command
   let pluginOpts: ReturnType<typeof loadPluginOptions> | undefined
@@ -842,10 +842,10 @@ async function execCommandHook(
     // form .replace() so paths containing $ aren't mangled by $-pattern
     // interpretation (rare but possible: \\server\c$\plugin).
     const rootPath = toHookPath(pluginRoot)
-    command = command.replace(/\$\{CLAUDE_PLUGIN_ROOT\}/g, () => rootPath)
+    command = command.replace(/\$\{MICROCODE_PLUGIN_ROOT\}/g, () => rootPath)
     if (pluginId) {
       const dataPath = toHookPath(getPluginDataDir(pluginId))
-      command = command.replace(/\$\{CLAUDE_PLUGIN_DATA\}/g, () => dataPath)
+      command = command.replace(/\$\{MICROCODE_PLUGIN_DATA\}/g, () => dataPath)
     }
     if (pluginId) {
       pluginOpts = loadPluginOptions(pluginId)
@@ -881,15 +881,15 @@ async function execCommandHook(
   // Build env vars — all paths go through toHookPath for Windows POSIX conversion
   const envVars: NodeJS.ProcessEnv = {
     ...subprocessEnv(),
-    CLAUDE_PROJECT_DIR: toHookPath(projectDir),
+    MICROCODE_PROJECT_DIR: toHookPath(projectDir),
   }
 
-  // Plugin and skill hooks both set CLAUDE_PLUGIN_ROOT (skills use the same
+  // Plugin and skill hooks both set MICROCODE_PLUGIN_ROOT (skills use the same
   // name for consistency — skills can migrate to plugins without code changes)
   if (pluginRoot) {
-    envVars.CLAUDE_PLUGIN_ROOT = toHookPath(pluginRoot)
+    envVars.MICROCODE_PLUGIN_ROOT = toHookPath(pluginRoot)
     if (pluginId) {
-      envVars.CLAUDE_PLUGIN_DATA = toHookPath(getPluginDataDir(pluginId))
+      envVars.MICROCODE_PLUGIN_DATA = toHookPath(getPluginDataDir(pluginId))
     }
   }
   // Expose plugin options as env vars too, so hooks can read them without
@@ -901,14 +901,14 @@ async function execCommandHook(
       // at schemas.ts:611 now constrains keys to /^[A-Za-z_]\w*$/ so this is
       // belt-and-suspenders, but cheap insurance if someone bypasses the schema.
       const envKey = key.replace(/[^A-Za-z0-9_]/g, '_').toUpperCase()
-      envVars[`CLAUDE_PLUGIN_OPTION_${envKey}`] = String(value)
+      envVars[`MICROCODE_PLUGIN_OPTION_${envKey}`] = String(value)
     }
   }
   if (skillRoot) {
-    envVars.CLAUDE_PLUGIN_ROOT = toHookPath(skillRoot)
+    envVars.MICROCODE_PLUGIN_ROOT = toHookPath(skillRoot)
   }
 
-  // CLAUDE_ENV_FILE points to a .sh file that the hook writes env var
+  // MICROCODE_ENV_FILE points to a .sh file that the hook writes env var
   // definitions into; getSessionEnvironmentScript() concatenates them and
   // bashProvider injects the content into bash commands. A PS hook would
   // naturally write PS syntax ($env:FOO = 'bar'), which bash can't parse.
@@ -922,7 +922,7 @@ async function execCommandHook(
       hookEvent === 'FileChanged') &&
     hookIndex !== undefined
   ) {
-    envVars.CLAUDE_ENV_FILE = await getHookEnvFilePath(hookEvent, hookIndex)
+    envVars.MICROCODE_ENV_FILE = await getHookEnvFilePath(hookEvent, hookIndex)
   }
 
   // When agent worktrees are removed, getCwd() may return a deleted path via
@@ -1447,7 +1447,7 @@ function isInternalHook(matched: MatchedHook): boolean {
  * Settings-file hooks (no pluginRoot/skillRoot) share the '' prefix so the
  * same command defined in user/project/local still collapses to one — the
  * original intent of the dedup. Plugin/skill hooks get their root as the
- * prefix, so two plugins sharing an unexpanded `${CLAUDE_PLUGIN_ROOT}/hook.sh`
+ * prefix, so two plugins sharing an unexpanded `${MICROCODE_PLUGIN_ROOT}/hook.sh`
  * template don't collapse: after expansion they point to different files.
  */
 function hookDedupKey(m: MatchedHook, payload: string): string {
@@ -4328,7 +4328,7 @@ export function hasInstructionsLoadedHook(): boolean {
  * - Eager load at session start (getMemoryFiles in microcodemd.ts)
  * - Eager reload after compaction (getMemoryFiles cache cleared by
  *   runPostCompactCleanup; next call reports load_reason: 'compact')
- * - Lazy load when Claude touches a file that triggers nested MICROCODE.md or
+ * - Lazy load when Microcode touches a file that triggers nested MICROCODE.md or
  *   conditional rules with paths: frontmatter (memoryFilesToAttachments in
  *   attachments.ts)
  */

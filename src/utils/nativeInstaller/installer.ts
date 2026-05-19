@@ -131,7 +131,7 @@ function getBaseDirectories() {
   }
 }
 
-async function isPossibleClaudeBinary(filePath: string): Promise<boolean> {
+async function isPossibleMicrocodeBinary(filePath: string): Promise<boolean> {
   try {
     const stats = await stat(filePath)
     // before download, the version lock file (located at the same filePath) will be size 0
@@ -465,12 +465,12 @@ async function performVersionUpdate(
     logForDebugging(`Version ${version} already installed, updating symlink`)
   }
 
-  // Create direct symlink from ~/.local/bin/claude to the version binary
+  // Create direct symlink from ~/.local/bin/microcode to the version binary
   await removeDirectoryIfEmpty(executablePath)
   await updateSymlink(executablePath, installPath)
 
   // Verify the executable was actually created/updated
-  if (!(await isPossibleClaudeBinary(executablePath))) {
+  if (!(await isPossibleMicrocodeBinary(executablePath))) {
     let installPathExists = false
     try {
       await stat(installPath)
@@ -489,7 +489,7 @@ async function performVersionUpdate(
 
 async function versionIsAvailable(version: string): Promise<boolean> {
   const { installPath } = await getVersionPaths(version)
-  return isPossibleClaudeBinary(installPath)
+  return isPossibleMicrocodeBinary(installPath)
 }
 
 async function updateLatest(
@@ -539,7 +539,7 @@ async function updateLatest(
     !forceReinstall &&
     version === MACRO.VERSION &&
     (await versionIsAvailable(version)) &&
-    (await isPossibleClaudeBinary(executablePath))
+    (await isPossibleMicrocodeBinary(executablePath))
   ) {
     logForDebugging(`Found ${version} at ${executablePath}, skipping install`)
     logEvent('tengu_native_update_complete', {
@@ -845,18 +845,18 @@ export async function checkInstall(
     })
   }
 
-  // Check if claude executable exists and is valid.
+  // Check if microcode executable exists and is valid.
   // On non-Windows, call readlink directly and route errno — ENOENT means
   // the executable is missing, EINVAL means it exists but isn't a symlink.
   // This avoids an access()→readlink() TOCTOU where deletion between the
   // two calls produces a misleading "Not a symlink" diagnostic.
-  // isPossibleClaudeBinary stats the path internally, so we don't pre-check
+  // isPossibleMicrocodeBinary stats the path internally, so we don't pre-check
   // with access() — that would be a TOCTOU between access and the stat.
   if (isWindows) {
     // On Windows it's a copied executable, not a symlink
-    if (!(await isPossibleClaudeBinary(dirs.executable))) {
+    if (!(await isPossibleMicrocodeBinary(dirs.executable))) {
       messages.push({
-        message: `installMethod is native, but claude command is missing or invalid at ${dirs.executable}`,
+        message: `installMethod is native, but microcode command is missing or invalid at ${dirs.executable}`,
         userActionRequired: true,
         type: 'error',
       })
@@ -865,9 +865,9 @@ export async function checkInstall(
     try {
       const target = await readlink(dirs.executable)
       const absoluteTarget = resolve(dirname(dirs.executable), target)
-      if (!(await isPossibleClaudeBinary(absoluteTarget))) {
+      if (!(await isPossibleMicrocodeBinary(absoluteTarget))) {
         messages.push({
-          message: `Claude symlink points to missing or invalid binary: ${target}`,
+          message: `Microcode symlink points to missing or invalid binary: ${target}`,
           userActionRequired: true,
           type: 'error',
         })
@@ -875,15 +875,15 @@ export async function checkInstall(
     } catch (e) {
       if (isENOENT(e)) {
         messages.push({
-          message: `installMethod is native, but claude command not found at ${dirs.executable}`,
+          message: `installMethod is native, but microcode command not found at ${dirs.executable}`,
           userActionRequired: true,
           type: 'error',
         })
       } else {
         // EINVAL (not a symlink) or other — check as regular binary
-        if (!(await isPossibleClaudeBinary(dirs.executable))) {
+        if (!(await isPossibleMicrocodeBinary(dirs.executable))) {
           messages.push({
-            message: `${dirs.executable} exists but is not a valid Claude binary`,
+            message: `${dirs.executable} exists but is not a valid Microcode binary`,
             userActionRequired: true,
             type: 'error',
           })
@@ -1021,7 +1021,7 @@ async function getVersionFromSymlink(
   try {
     const target = await readlink(symlinkPath)
     const absoluteTarget = resolve(dirname(symlinkPath), target)
-    if (await isPossibleClaudeBinary(absoluteTarget)) {
+    if (await isPossibleMicrocodeBinary(absoluteTarget)) {
       return absoluteTarget
     }
   } catch {
@@ -1195,7 +1195,7 @@ export async function cleanupOldVersions(): Promise<void> {
       const files = await readdir(executableDir)
       let cleanedCount = 0
       for (const file of files) {
-        if (!/^claude\.exe\.old\.\d+$/.test(file)) continue
+        if (!/^microcode\.exe\.old\.\d+$/.test(file)) continue
         try {
           await unlink(join(executableDir, file))
           cleanedCount++
@@ -1476,12 +1476,12 @@ export async function removeInstalledSymlink(): Promise<void> {
 
     // It's a native binary symlink, safe to remove
     await unlink(dirs.executable)
-    logForDebugging(`Removed claude symlink at ${dirs.executable}`)
+    logForDebugging(`Removed microcode symlink at ${dirs.executable}`)
   } catch (error) {
     if (isENOENT(error)) {
       return
     }
-    logError(new Error(`Failed to remove claude symlink: ${error}`))
+    logError(new Error(`Failed to remove microcode symlink: ${error}`))
   }
 }
 
@@ -1558,8 +1558,8 @@ async function manualRemoveNpmPackage(
 
     if (getPlatform().startsWith('win32')) {
       // Windows - only remove executables, not the package directory
-      const binCmd = join(globalPrefix, 'claude.cmd')
-      const binPs1 = join(globalPrefix, 'claude.ps1')
+      const binCmd = join(globalPrefix, 'microcode.cmd')
+      const binPs1 = join(globalPrefix, 'microcode.ps1')
       const binExe = join(globalPrefix, 'microcode')
 
       if (await tryRemove(binCmd, 'bin script')) {

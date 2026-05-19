@@ -313,7 +313,7 @@ export async function mcpAddJsonHandler(name: string, json: string, options: {
   }
 }
 
-// mcp add-from-claude-desktop (lines 4881–4927)
+// mcp add-from-microcode-desktop (lines 4881–4927)
 export async function mcpAddFromDesktopHandler(options: {
   scope?: string;
 }): Promise<void> {
@@ -326,11 +326,11 @@ export async function mcpAddFromDesktopHandler(options: {
       source: 'desktop' as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
     });
     const {
-      readClaudeDesktopMcpServers
+      readMicrocodeDesktopMcpServers
     } = await import('../../utils/microcodeDesktop.js');
-    const servers = await readClaudeDesktopMcpServers();
+    const servers = await readMicrocodeDesktopMcpServers();
     if (Object.keys(servers).length === 0) {
-      cliOk('No MCP servers found in Claude Desktop configuration or configuration file does not exist.');
+      cliOk('No MCP servers found in Microcode Desktop configuration or configuration file does not exist.');
     }
     const {
       unmount

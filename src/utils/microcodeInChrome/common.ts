@@ -9,7 +9,7 @@ import { execFileNoThrow } from '../execFileNoThrow.js'
 import { getPlatform } from '../platform.js'
 import { which } from '../which.js'
 
-export const CLAUDE_IN_CHROME_MCP_SERVER_NAME = 'claude-in-chrome'
+export const MICROCODE_IN_CHROME_MCP_SERVER_NAME = 'microcode-in-chrome'
 
 // Re-export ChromiumBrowser type for setup.ts
 export type { ChromiumBrowser } from './setupPortable.js'
@@ -356,7 +356,7 @@ export async function detectAvailableBrowser(): Promise<ChromiumBrowser | null> 
           const stats = await stat(appPath)
           if (stats.isDirectory()) {
             logForDebugging(
-              `[Claude in Chrome] Detected browser: ${config.name}`,
+              `[Microcode in Chrome] Detected browser: ${config.name}`,
             )
             return browserId
           }
@@ -372,7 +372,7 @@ export async function detectAvailableBrowser(): Promise<ChromiumBrowser | null> 
         for (const binary of config.linux.binaries) {
           if (await which(binary).catch(() => null)) {
             logForDebugging(
-              `[Claude in Chrome] Detected browser: ${config.name}`,
+              `[Microcode in Chrome] Detected browser: ${config.name}`,
             )
             return browserId
           }
@@ -391,7 +391,7 @@ export async function detectAvailableBrowser(): Promise<ChromiumBrowser | null> 
             const stats = await stat(dataPath)
             if (stats.isDirectory()) {
               logForDebugging(
-                `[Claude in Chrome] Detected browser: ${config.name}`,
+                `[Microcode in Chrome] Detected browser: ${config.name}`,
               )
               return browserId
             }
@@ -408,21 +408,21 @@ export async function detectAvailableBrowser(): Promise<ChromiumBrowser | null> 
   return null
 }
 
-export function isClaudeInChromeMCPServer(name: string): boolean {
-  return normalizeNameForMCP(name) === CLAUDE_IN_CHROME_MCP_SERVER_NAME
+export function isMicrocodeInChromeMCPServer(name: string): boolean {
+  return normalizeNameForMCP(name) === MICROCODE_IN_CHROME_MCP_SERVER_NAME
 }
 
 const MAX_TRACKED_TABS = 200
 const trackedTabIds = new Set<number>()
 
-export function trackClaudeInChromeTabId(tabId: number): void {
+export function trackMicrocodeInChromeTabId(tabId: number): void {
   if (trackedTabIds.size >= MAX_TRACKED_TABS && !trackedTabIds.has(tabId)) {
     trackedTabIds.clear()
   }
   trackedTabIds.add(tabId)
 }
 
-export function isTrackedClaudeInChromeTabId(tabId: number): boolean {
+export function isTrackedMicrocodeInChromeTabId(tabId: number): boolean {
   return trackedTabIds.has(tabId)
 }
 
@@ -433,7 +433,7 @@ export async function openInChrome(url: string): Promise<boolean> {
   const browser = await detectAvailableBrowser()
 
   if (!browser) {
-    logForDebugging('[Claude in Chrome] No compatible browser found')
+    logForDebugging('[Microcode in Chrome] No compatible browser found')
     return false
   }
 
@@ -500,7 +500,7 @@ export function getAllSocketPaths(): string[] {
 
   // Scan for *.sock files in the socket directory
   try {
-    // eslint-disable-next-line custom-rules/no-sync-fs -- ClaudeForChromeContext.getSocketPaths (external @ant/claude-for-chrome-mcp) requires a sync () => string[] callback
+    // eslint-disable-next-line custom-rules/no-sync-fs -- MicrocodeForChromeContext.getSocketPaths (external @ant/claude-for-chrome-mcp) requires a sync () => string[] callback
     const files = readdirSync(socketDir)
     for (const file of files) {
       if (file.endsWith('.sock')) {
@@ -527,7 +527,7 @@ export function getAllSocketPaths(): string[] {
 }
 
 function getSocketName(): string {
-  // NOTE: This must match the one used in the Claude in Chrome MCP
+  // NOTE: This must match the one used in the Microcode in Chrome MCP
   return `microcode-mcp-browser-bridge-${getUsername()}`
 }
 

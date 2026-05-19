@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Text } from '../ink.js';
-import { isClaudeAISubscriber } from '../utils/auth.js';
-import { isChromeExtensionInstalled, shouldEnableClaudeInChrome } from '../utils/microcodeInChrome/setup.js';
+import { isMicrocodeAISubscriber } from '../utils/auth.js';
+import { isChromeExtensionInstalled, shouldEnableMicrocodeInChrome } from '../utils/microcodeInChrome/setup.js';
 import { isRunningOnHomespace } from '../utils/envUtils.js';
 import { useStartupNotification } from './notifs/useStartupNotification.js';
 function getChromeFlag(): boolean | undefined {
@@ -18,13 +18,13 @@ export function useChromeExtensionNotification() {
 }
 async function _temp() {
   const chromeFlag = getChromeFlag();
-  if (!shouldEnableClaudeInChrome(chromeFlag)) {
+  if (!shouldEnableMicrocodeInChrome(chromeFlag)) {
     return null;
   }
-  if (true && !isClaudeAISubscriber()) {
+  if (true && !isMicrocodeAISubscriber()) {
     return {
       key: "chrome-requires-subscription",
-      jsx: <Text color="error">Claude in Chrome requires a claude.ai subscription</Text>,
+      jsx: <Text color="error">Microcode in Chrome requires a claude.ai subscription</Text>,
       priority: "immediate",
       timeoutMs: 5000
     };
@@ -40,8 +40,8 @@ async function _temp() {
   }
   if (chromeFlag === undefined) {
     return {
-      key: "claude-in-chrome-default-enabled",
-      text: "Claude in Chrome enabled \xB7 /chrome",
+      key: "microcode-in-chrome-default-enabled",
+      text: "Microcode in Chrome enabled \xB7 /chrome",
       priority: "low"
     };
   }

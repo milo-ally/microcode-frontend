@@ -120,7 +120,7 @@ export async function saveMarketplaceJsonToZipCache(
 async function readMarketplaceJsonContent(dir: string): Promise<string | null> {
   const candidates = [
     join(dir, '.microcode-plugin', 'marketplace.json'),
-    join(dir, '.claude-plugin', 'marketplace.json'),
+    join(dir, '.microcode-plugin', 'marketplace.json'),
     join(dir, 'marketplace.json'),
     dir, // For URL sources, installLocation IS the marketplace JSON file
   ]

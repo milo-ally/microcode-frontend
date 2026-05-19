@@ -1549,7 +1549,7 @@ export async function powershellToolHasPermission(
     // gate, `Set-Location ./.microcode; Set-Content ./settings.json '...'` would
     // pass: Set-Content is checked in isolation, matches ACCEPT_EDITS_ALLOWED_CMDLETS,
     // and auto-allows — but PowerShell runs it from the changed cwd, writing to
-    // .microcode/settings.json (a Claude config file the path validator didn't check).
+    // .microcode/settings.json (a Microcode config file the path validator didn't check).
     // This matches BashTool's compoundCommandHasCd guard.
     if (statement !== null && !hasCdSubCommand && !hasSymlinkCreate) {
       const subModeResult = checkPermissionMode(

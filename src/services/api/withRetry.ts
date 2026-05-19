@@ -16,9 +16,9 @@ import {
   clearApiKeyHelperCache,
   clearAwsCredentialsCache,
   clearGcpCredentialsCache,
-  getClaudeAIOAuthTokens,
+  getMicrocodeAIOAuthTokens,
   handleOAuth401Error,
-  isClaudeAISubscriber,
+  isMicrocodeAISubscriber,
   isEnterpriseSubscriber,
 } from '../../utils/auth.js'
 import { isEnvTruthy } from '../../utils/envUtils.js'
@@ -242,7 +242,7 @@ export async function* withRetry<T>(
           (lastError instanceof APIError && lastError.status === 401) ||
           isOAuthTokenRevokedError(lastError)
         ) {
-          const failedAccessToken = getClaudeAIOAuthTokens()?.accessToken
+          const failedAccessToken = getMicrocodeAIOAuthTokens()?.accessToken
           if (failedAccessToken) {
             await handleOAuth401Error(failedAccessToken)
           }
@@ -329,7 +329,7 @@ export async function* withRetry<T>(
         // If FALLBACK_FOR_ALL_PRIMARY_MODELS is not set, fall through only if the primary model is a non-custom Opus model.
         // TODO: Revisit if the isNonCustomOpusModel check should still exist, or if isNonCustomOpusModel is a stale artifact of when Microcode was hardcoded on Opus.
         (process.env.FALLBACK_FOR_ALL_PRIMARY_MODELS ||
-          (!isClaudeAISubscriber() && isNonCustomOpusModel(options.model)))
+          (!isMicrocodeAISubscriber() && isNonCustomOpusModel(options.model)))
       ) {
         consecutive529Errors++
         if (consecutive529Errors >= MAX_529_RETRIES) {
@@ -736,7 +736,7 @@ function shouldRetry(error: APIError): boolean {
   // Enterprise users can retry because they typically use PAYG instead of rate limits.
   if (
     shouldRetryHeader === 'true' &&
-    (!isClaudeAISubscriber() || isEnterpriseSubscriber())
+    (!isMicrocodeAISubscriber() || isEnterpriseSubscriber())
   ) {
     return true
   }
@@ -762,10 +762,10 @@ function shouldRetry(error: APIError): boolean {
   // Retry on lock timeouts.
   if (error.status === 409) return true
 
-  // Retry on rate limits, but not for ClaudeAI Subscription users
+  // Retry on rate limits, but not for MicrocodeAI Subscription users
   // Enterprise users can retry because they typically use PAYG instead of rate limits
   if (error.status === 429) {
-    return !isClaudeAISubscriber() || isEnterpriseSubscriber()
+    return !isMicrocodeAISubscriber() || isEnterpriseSubscriber()
   }
 
   // Clear API key cache on 401 and allow retry.

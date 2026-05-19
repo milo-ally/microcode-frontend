@@ -342,7 +342,7 @@ export const FileEditTool = buildTool({
       }
     }
 
-    // Additional validation for Claude settings files
+    // Additional validation for Microcode settings files
     const settingsValidationResult = validateInputForSettingsFileEdit(
       fullFilePath,
       file,

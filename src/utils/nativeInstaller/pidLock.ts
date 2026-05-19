@@ -95,10 +95,10 @@ export function isProcessRunning(pid: number): boolean {
 }
 
 /**
- * Validate that a running process is actually a Claude process
+ * Validate that a running process is actually a Microcode process
  * This helps mitigate PID reuse issues
  */
-function isClaudeProcess(pid: number, expectedExecPath: string): boolean {
+function isMicrocodeProcess(pid: number, expectedExecPath: string): boolean {
   if (!isProcessRunning(pid)) {
     return false
   }
@@ -175,11 +175,11 @@ export function isLockActive(lockFilePath: string): boolean {
     return false
   }
 
-  // Secondary validation: is it actually a Claude process?
+  // Secondary validation: is it actually a Microcode process?
   // This helps with PID reuse scenarios
-  if (!isClaudeProcess(pid, execPath)) {
+  if (!isMicrocodeProcess(pid, execPath)) {
     logForDebugging(
-      `Lock PID ${pid} is running but does not appear to be Claude - treating as stale`,
+      `Lock PID ${pid} is running but does not appear to be Microcode - treating as stale`,
     )
     return false
   }
@@ -244,7 +244,7 @@ export async function tryAcquireLock(
 
   // Check if there's an existing active lock (including by our own process)
   // Use isLockActive for consistency with cleanup - it checks both PID running AND
-  // validates it's actually a Claude process (to handle PID reuse scenarios)
+  // validates it's actually a Microcode process (to handle PID reuse scenarios)
   if (isLockActive(lockFilePath)) {
     const existingContent = readLockContent(lockFilePath)
     logForDebugging(

@@ -10,12 +10,12 @@ import { safeParseJSON } from './json.js'
 import { logError } from './log.js'
 import { getPlatform, SUPPORTED_PLATFORMS } from './platform.js'
 
-export async function getClaudeDesktopConfigPath(): Promise<string> {
+export async function getMicrocodeDesktopConfigPath(): Promise<string> {
   const platform = getPlatform()
 
   if (!SUPPORTED_PLATFORMS.includes(platform)) {
     throw new Error(
-      `Unsupported platform: ${platform} - Claude Desktop integration only works on macOS and WSL.`,
+      `Unsupported platform: ${platform} - Microcode Desktop integration only works on macOS and WSL.`,
     )
   }
 
@@ -24,7 +24,7 @@ export async function getClaudeDesktopConfigPath(): Promise<string> {
       homedir(),
       'Library',
       'Application Support',
-      'Claude',
+      'Microcode',
       'microcode_desktop_config.json',
     )
   }
@@ -56,7 +56,7 @@ export async function getClaudeDesktopConfigPath(): Promise<string> {
     try {
       const userDirs = await readdir(usersDir, { withFileTypes: true })
 
-      // Look for Claude Desktop config in each user directory
+      // Look for Microcode Desktop config in each user directory
       for (const user of userDirs) {
         if (
           user.name === 'Public' ||
@@ -72,7 +72,7 @@ export async function getClaudeDesktopConfigPath(): Promise<string> {
           user.name,
           'AppData',
           'Roaming',
-          'Claude',
+          'Microcode',
           'microcode_desktop_config.json',
         )
 
@@ -91,20 +91,20 @@ export async function getClaudeDesktopConfigPath(): Promise<string> {
   }
 
   throw new Error(
-    'Could not find Claude Desktop config file in Windows. Make sure Claude Desktop is installed on Windows.',
+    'Could not find Microcode Desktop config file in Windows. Make sure Microcode Desktop is installed on Windows.',
   )
 }
 
-export async function readClaudeDesktopMcpServers(): Promise<
+export async function readMicrocodeDesktopMcpServers(): Promise<
   Record<string, McpServerConfig>
 > {
   if (!SUPPORTED_PLATFORMS.includes(getPlatform())) {
     throw new Error(
-      'Unsupported platform - Claude Desktop integration only works on macOS and WSL.',
+      'Unsupported platform - Microcode Desktop integration only works on macOS and WSL.',
     )
   }
   try {
-    const configPath = await getClaudeDesktopConfigPath()
+    const configPath = await getMicrocodeDesktopConfigPath()
 
     let configContent: string
     try {

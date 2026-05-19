@@ -308,9 +308,9 @@ export class QueryEngine {
     }
 
     // When an SDK caller provides a custom system prompt AND has set
-    // CLAUDE_COWORK_MEMORY_PATH_OVERRIDE, inject the memory-mechanics prompt.
+    // MICROCODE_COWORK_MEMORY_PATH_OVERRIDE, inject the memory-mechanics prompt.
     // The env var is an explicit opt-in signal — the caller has wired up
-    // a memory directory and needs Claude to know how to use it (which
+    // a memory directory and needs Microcode to know how to use it (which
     // Write/Edit tools to call, MEMORY.md filename, loading semantics).
     // The caller can layer their own policy text via appendSystemPrompt.
     const memoryMechanicsPrompt =
@@ -694,7 +694,7 @@ export class QueryEngine {
         // messages up through the preservedSegment tail. Attachments and
         // progress are now recorded inline (their switch cases below), but
         // this flush still matters for the preservedSegment tail walk.
-        // If the SDK subprocess restarts before then (claude-desktop kills
+        // If the SDK subprocess restarts before then (microcode-desktop kills
         // between turns), tailUuid points to a never-written message →
         // applyPreservedSegmentRelinks fails its tail→head walk → returns
         // without pruning → resume loads full pre-compact history.
@@ -1177,7 +1177,7 @@ export class QueryEngine {
 }
 
 /**
- * Sends a single prompt to the Claude API and returns the response.
+ * Sends a single prompt to the Microcode API and returns the response.
  * Assumes that microcode is being used non-interactively -- will not
  * ask the user for permissions or further input.
  *
@@ -1293,3 +1293,4 @@ export async function* ask({
     setReadFileCache(engine.getReadFileState())
   }
 }
+

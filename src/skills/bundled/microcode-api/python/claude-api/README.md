@@ -1,6 +1,6 @@
-# Python Claude API
+# Python Microcode API
 
-Use the official Anthropic Python SDK for direct Claude API access from Python.
+Use the official Anthropic Python SDK for direct Microcode API access from Python.
 
 ## Install
 
@@ -48,7 +48,7 @@ async def main() -> None:
     message = await client.messages.create(
         model="claude-sonnet-4-5",
         max_tokens=1024,
-        messages=[{"role": "user", "content": "Hello, Claude"}],
+        messages=[{"role": "user", "content": "Hello, Microcode"}],
     )
     print(message.content)
 

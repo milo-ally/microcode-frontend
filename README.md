@@ -1,6 +1,6 @@
 # Microcode
 
-An AI-powered coding assistant CLI, inspired by [Claude Code](https://github.com/anthropics/claude-code).
+An AI-powered coding assistant CLI, inspired by [Microcode](https://github.com/anthropics/claude-code).
 
 Microcode is a terminal-based AI coding agent that can understand your codebase, edit files, run commands, and help you build software interactively.
 
@@ -52,7 +52,7 @@ Available providers:
 | Provider | Description |
 |---|---|
 | `github-models` | OpenAI-compatible GitHub Models API |
-| `github-copilot` | GitHub Copilot account-based API (Claude models) |
+| `github-copilot` | GitHub Copilot account-based API (Microcode models) |
 
 Authentication lookup order:
 
@@ -75,7 +75,7 @@ Run with GitHub Models:
 bun run dev --settings '{"provider":"github-models"}'
 ```
 
-Run with GitHub Copilot + Claude:
+Run with GitHub Copilot + Microcode:
 
 ```bash
 bun run dev --settings '{"provider":"github-copilot"}' --model "claude-sonnet-4.6"

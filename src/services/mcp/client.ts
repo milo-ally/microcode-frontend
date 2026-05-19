@@ -58,7 +58,7 @@ import { createAbortController } from '../../utils/abortController.js'
 import { count } from '../../utils/array.js'
 import {
   checkAndRefreshOAuthTokenIfNeeded,
-  getClaudeAIOAuthTokens,
+  getMicrocodeAIOAuthTokens,
   handleOAuth401Error,
 } from '../../utils/auth.js'
 import { registerCleanup } from '../../utils/cleanupRegistry.js'
@@ -131,7 +131,7 @@ import {
   hasMcpDiscoveryButNoToken,
   wrapFetchWithStepUpDetection,
 } from './auth.js'
-import { markClaudeAiMcpConnected } from './claudeai.js'
+import { markMicrocodeAiMcpConnected } from './microcodeai.js'
 import { getAllMcpConfigs, isMcpServerDisabled } from './config.js'
 import { getMcpServerHeaders } from './headersHelper.js'
 import { SdkControlClientTransport } from './SdkControlTransport.js'
@@ -228,11 +228,11 @@ function getMcpToolTimeoutMs(): number {
   )
 }
 
-import { isClaudeInChromeMCPServer } from '../../utils/microcodeInChrome/common.js'
+import { isMicrocodeInChromeMCPServer } from '../../utils/microcodeInChrome/common.js'
 
-// Lazy: toolRendering.tsx pulls React/ink; only needed when Claude-in-Chrome MCP server is connected
+// Lazy: toolRendering.tsx pulls React/ink; only needed when Microcode-in-Chrome MCP server is connected
 /* eslint-disable @typescript-eslint/no-require-imports */
-const claudeInChromeToolRendering =
+const microcodeInChromeToolRendering =
   (): typeof import('../../utils/microcodeInChrome/toolRendering.js') =>
     require('../../utils/microcodeInChrome/toolRendering.js')
 // Lazy: wrapper.tsx → hostAdapter.ts → executor.ts pulls both native modules
@@ -333,14 +333,14 @@ function mcpBaseUrlAnalytics(serverRef: ScopedMcpServerConfig): {
 }
 
 /**
- * Shared handler for sse/http/claudeai-proxy auth failures during connect:
+ * Shared handler for sse/http/microcodeai-proxy auth failures during connect:
  * emits tengu_mcp_server_needs_auth, caches the needs-auth entry, and returns
  * the needs-auth connection result.
  */
 function handleRemoteAuthFailure(
   name: string,
   serverRef: ScopedMcpServerConfig,
-  transportType: 'sse' | 'http' | 'claudeai-proxy',
+  transportType: 'sse' | 'http' | 'microcodeai-proxy',
 ): MCPServerConnection {
   logEvent('tengu_mcp_server_needs_auth', {
     transportType:
@@ -350,7 +350,7 @@ function handleRemoteAuthFailure(
   const label: Record<typeof transportType, string> = {
     sse: 'SSE',
     http: 'HTTP',
-    'claudeai-proxy': 'claude.ai proxy',
+    'microcodeai-proxy': 'claude.ai proxy',
   }
   logMCPDebug(
     name,
@@ -369,11 +369,11 @@ function handleRemoteAuthFailure(
  * stale token mass-401s every claude.ai connector and sticks them all in the
  * 15-min needs-auth cache.
  */
-export function createClaudeAiProxyFetch(innerFetch: FetchLike): FetchLike {
+export function createMicrocodeAiProxyFetch(innerFetch: FetchLike): FetchLike {
   return async (url, init) => {
     const doRequest = async () => {
       await checkAndRefreshOAuthTokenIfNeeded()
-      const currentTokens = getClaudeAIOAuthTokens()
+      const currentTokens = getMicrocodeAIOAuthTokens()
       if (!currentTokens) {
         throw new Error('No claude.ai OAuth token available')
       }
@@ -381,7 +381,7 @@ export function createClaudeAiProxyFetch(innerFetch: FetchLike): FetchLike {
       const headers = new Headers(init?.headers)
       headers.set('Authorization', `Bearer ${currentTokens.accessToken}`)
       const response = await innerFetch(url, { ...init, headers })
-      // Return the exact token that was sent. Reading getClaudeAIOAuthTokens()
+      // Return the exact token that was sent. Reading getMicrocodeAIOAuthTokens()
       // again after the request is wrong under concurrent 401s: another
       // connector's handleOAuth401Error clears the memoize cache, so we'd read
       // the NEW token from keychain, pass it to handleOAuth401Error, which
@@ -406,7 +406,7 @@ export function createClaudeAiProxyFetch(innerFetch: FetchLike): FetchLike {
     })
     if (!tokenChanged) {
       // ELOCKED contention: another connector may have won the lockfile and refreshed — check if token changed underneath us
-      const now = getClaudeAIOAuthTokens()?.accessToken
+      const now = getMicrocodeAIOAuthTokens()?.accessToken
       if (!now || now === sentToken) {
         return response
       }
@@ -710,7 +710,7 @@ export const connectToServer = memoize(
         const wsHeaders = {
           'User-Agent': getMCPUserAgent(),
           ...(serverRef.authToken && {
-            'X-Claude-Code-Ide-Authorization': serverRef.authToken,
+            'X-Microcode-Code-Ide-Authorization': serverRef.authToken,
           }),
         }
 
@@ -865,13 +865,13 @@ export const connectToServer = memoize(
         logMCPDebug(name, `HTTP transport created successfully`)
       } else if (serverRef.type === 'sdk') {
         throw new Error('SDK servers should be handled in print.ts')
-      } else if (serverRef.type === 'claudeai-proxy') {
+      } else if (serverRef.type === 'microcodeai-proxy') {
         logMCPDebug(
           name,
           `Initializing claude.ai proxy transport for server ${serverRef.id}`,
         )
 
-        const tokens = getClaudeAIOAuthTokens()
+        const tokens = getMicrocodeAIOAuthTokens()
         if (!tokens) {
           throw new Error('No claude.ai OAuth token found')
         }
@@ -882,7 +882,7 @@ export const connectToServer = memoize(
         logMCPDebug(name, `Using claude.ai proxy at ${proxyUrl}`)
 
         // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
-        const fetchWithAuth = createClaudeAiProxyFetch(globalThis.fetch)
+        const fetchWithAuth = createMicrocodeAiProxyFetch(globalThis.fetch)
 
         const proxyOptions = getProxyFetchOptions()
         const transportOptions: StreamableHTTPClientTransportOptions = {
@@ -904,20 +904,20 @@ export const connectToServer = memoize(
         logMCPDebug(name, `claude.ai proxy transport created successfully`)
       } else if (
         (serverRef.type === 'stdio' || !serverRef.type) &&
-        isClaudeInChromeMCPServer(name)
+        isMicrocodeInChromeMCPServer(name)
       ) {
         // Run the Chrome MCP server in-process to avoid spawning a ~325 MB subprocess
         const { createChromeContext } = await import(
           '../../utils/microcodeInChrome/mcpServer.js'
         )
-        const { createClaudeForChromeMcpServer } = await import(
+        const { createMicrocodeForChromeMcpServer } = await import(
           '@ant/claude-for-chrome-mcp'
         )
         const { createLinkedTransportPair } = await import(
           './InProcessTransport.js'
         )
         const context = createChromeContext(serverRef.env)
-        inProcessServer = createClaudeForChromeMcpServer(context)
+        inProcessServer = createMicrocodeForChromeMcpServer(context)
         const [clientTransport, serverTransport] = createLinkedTransportPair()
         await inProcessServer.connect(serverTransport)
         transport = clientTransport
@@ -1122,7 +1122,7 @@ export const connectToServer = memoize(
             return handleRemoteAuthFailure(name, serverRef, 'http')
           }
         } else if (
-          serverRef.type === 'claudeai-proxy' &&
+          serverRef.type === 'microcodeai-proxy' &&
           error instanceof Error
         ) {
           logMCPDebug(
@@ -1134,7 +1134,7 @@ export const connectToServer = memoize(
           // StreamableHTTPError has a `code` property with the HTTP status
           const errorCode = (error as Error & { code?: number }).code
           if (errorCode === 401) {
-            return handleRemoteAuthFailure(name, serverRef, 'claudeai-proxy')
+            return handleRemoteAuthFailure(name, serverRef, 'microcodeai-proxy')
           }
         } else if (
           serverRef.type === 'sse-ide' ||
@@ -1314,7 +1314,7 @@ export const connectToServer = memoize(
         // and close the transport so pending tool calls reject and the next
         // call reconnects with a fresh session ID.
         if (
-          (transportType === 'http' || transportType === 'claudeai-proxy') &&
+          (transportType === 'http' || transportType === 'microcodeai-proxy') &&
           isMcpSessionExpiredError(error)
         ) {
           logMCPDebug(
@@ -1333,7 +1333,7 @@ export const connectToServer = memoize(
         if (
           transportType === 'sse' ||
           transportType === 'http' ||
-          transportType === 'claudeai-proxy'
+          transportType === 'microcodeai-proxy'
         ) {
           // The SDK's StreamableHTTP transport fires this after exhausting its
           // own SSE reconnect attempts (default maxRetries: 2) — but it never
@@ -1974,9 +1974,9 @@ export const fetchToolsForClient = memoizeWithLRU(
               const displayName = tool.annotations?.title || tool.name
               return `${client.name} - ${displayName} (MCP)`
             },
-            ...(isClaudeInChromeMCPServer(client.name) &&
+            ...(isMicrocodeInChromeMCPServer(client.name) &&
             (client.config.type === 'stdio' || !client.config.type)
-              ? claudeInChromeToolRendering().getClaudeInChromeMCPToolOverrides(
+              ? microcodeInChromeToolRendering().getMicrocodeInChromeMCPToolOverrides(
                   tool.name,
                 )
               : {}),
@@ -2162,8 +2162,8 @@ export async function reconnectMcpServerImpl(
       }
     }
 
-    if (config.type === 'claudeai-proxy') {
-      markClaudeAiMcpConnected(name)
+    if (config.type === 'microcodeai-proxy') {
+      markMicrocodeAiMcpConnected(name)
     }
 
     const supportsResources = !!client.capabilities?.resources
@@ -2305,7 +2305,7 @@ export async function getMcpToolsCommandsAndResources(
       // Each probe is a network round-trip for connect-401 plus OAuth
       // discovery, and print mode awaits the whole batch (main.tsx:3503).
       if (
-        (config.type === 'claudeai-proxy' ||
+        (config.type === 'microcodeai-proxy' ||
           config.type === 'http' ||
           config.type === 'sse') &&
         ((await isMcpAuthCached(name)) ||
@@ -2335,8 +2335,8 @@ export async function getMcpToolsCommandsAndResources(
         return
       }
 
-      if (config.type === 'claudeai-proxy') {
-        markClaudeAiMcpConnected(name)
+      if (config.type === 'microcodeai-proxy') {
+        markMicrocodeAiMcpConnected(name)
       }
 
       const supportsResources = !!client.capabilities?.resources
@@ -3219,7 +3219,7 @@ async function callMCPTool({
         'code' in e &&
         (e as Error & { code?: number }).code === -32000 &&
         e.message.includes('Connection closed') &&
-        (config.type === 'http' || config.type === 'claudeai-proxy')
+        (config.type === 'http' || config.type === 'microcodeai-proxy')
       if (isSessionExpired || isConnectionClosedOnHttp) {
         logMCPDebug(
           name,

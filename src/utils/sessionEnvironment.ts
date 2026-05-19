@@ -69,7 +69,7 @@ export async function getSessionEnvironmentScript(): Promise<string | null> {
 
   const scripts: string[] = []
 
-  // Check for CLAUDE_ENV_FILE passed from parent process (e.g., HFI trajectory runner)
+  // Check for MICROCODE_ENV_FILE passed from parent process (e.g., HFI trajectory runner)
   // This allows venv/conda activation to persist across shell commands
   const envFile = process.env.MICROCODE_ENV_FILE
   if (envFile) {
@@ -78,13 +78,13 @@ export async function getSessionEnvironmentScript(): Promise<string | null> {
       if (envScript) {
         scripts.push(envScript)
         logForDebugging(
-          `Session environment loaded from CLAUDE_ENV_FILE: ${envFile} (${envScript.length} chars)`,
+          `Session environment loaded from MICROCODE_ENV_FILE: ${envFile} (${envScript.length} chars)`,
         )
       }
     } catch (e: unknown) {
       const code = getErrnoCode(e)
       if (code !== 'ENOENT') {
-        logForDebugging(`Failed to read CLAUDE_ENV_FILE: ${errorMessage(e)}`)
+        logForDebugging(`Failed to read MICROCODE_ENV_FILE: ${errorMessage(e)}`)
       }
     }
   }

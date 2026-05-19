@@ -1,6 +1,6 @@
 # Python Files API
 
-Use the Files API when you need upload-once, reference-many behavior across multiple Claude API requests.
+Use the Files API when you need upload-once, reference-many behavior across multiple Microcode API requests.
 
 ## Important constraints
 

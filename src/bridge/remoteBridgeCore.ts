@@ -925,7 +925,7 @@ import {
 } from './codeSessionApi.js'
 import { getBridgeBaseUrlOverride } from './bridgeConfig.js'
 
-// CLI-side wrapper that applies the CLAUDE_BRIDGE_BASE_URL dev override and
+// CLI-side wrapper that applies the MICROCODE_BRIDGE_BASE_URL dev override and
 // injects the trusted-device token (both are env/GrowthBook reads that the
 // SDK-facing codeSessionApi.ts export must stay free of).
 export async function fetchRemoteCredentials(

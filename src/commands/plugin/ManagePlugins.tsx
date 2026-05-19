@@ -10,7 +10,7 @@ import { MCPRemoteServerMenu } from '../../components/mcp/MCPRemoteServerMenu.js
 import { MCPStdioServerMenu } from '../../components/mcp/MCPStdioServerMenu.js';
 import { MCPToolDetailView } from '../../components/mcp/MCPToolDetailView.js';
 import { MCPToolListView } from '../../components/mcp/MCPToolListView.js';
-import type { ClaudeAIServerInfo, HTTPServerInfo, SSEServerInfo, StdioServerInfo } from '../../components/mcp/types.js';
+import type { MicrocodeAIServerInfo, HTTPServerInfo, SSEServerInfo, StdioServerInfo } from '../../components/mcp/types.js';
 import { SearchBox } from '../../components/SearchBox.js';
 import { useSearchInput } from '../../hooks/useSearchInput.js';
 import { useTerminalSize } from '../../hooks/useTerminalSize.js';
@@ -19,7 +19,7 @@ import { Box, Text, useInput, useTerminalFocus } from '../../ink.js';
 import { useKeybinding, useKeybindings } from '../../keybindings/useKeybinding.js';
 import { getBuiltinPluginDefinition } from '../../plugins/builtinPlugins.js';
 import { useMcpToggleEnabled } from '../../services/mcp/MCPConnectionManager.js';
-import type { MCPServerConnection, McpClaudeAIProxyServerConfig, McpHTTPServerConfig, McpSSEServerConfig, McpStdioServerConfig } from '../../services/mcp/types.js';
+import type { MCPServerConnection, McpMicrocodeAIProxyServerConfig, McpHTTPServerConfig, McpSSEServerConfig, McpStdioServerConfig } from '../../services/mcp/types.js';
 import { filterToolsByServer } from '../../services/mcp/utils.js';
 import { disablePluginOp, enablePluginOp, getPluginInstallationFromV2, isInstallableScope, isPluginEnabledAtProjectScope, uninstallPluginOp, updatePluginOp } from '../../services/plugins/pluginOperations.js';
 import { useAppState } from '../../state/AppState.js';
@@ -841,7 +841,7 @@ export function ManagePlugins({
           try {
             await fs.access(marketplaceJsonPath);
           } catch {
-            marketplaceJsonPath = path.join(marketplaceDir, '.claude-plugin', 'marketplace.json');
+            marketplaceJsonPath = path.join(marketplaceDir, '.microcode-plugin', 'marketplace.json');
           }
           const content = await fs.readFile(marketplaceJsonPath, 'utf-8');
           const marketplace_1 = jsonParse(content);
@@ -1059,7 +1059,7 @@ export function ManagePlugins({
               setViewState('confirm-project-uninstall');
               return;
             }
-            // If the plugin has persistent data (${CLAUDE_PLUGIN_DATA}) AND this
+            // If the plugin has persistent data (${MICROCODE_PLUGIN_DATA}) AND this
             // is the last scope, prompt before deleting it. For multi-scope
             // installs, the op's isLastScope check won't delete regardless of
             // the user's y/n — showing the dialog would mislead ("y" → nothing
@@ -1462,7 +1462,7 @@ export function ManagePlugins({
           // default scope if not installable (e.g. 'managed', though that
           // case is guarded by isActive below). deleteDataDir=false: this
           // is a recovery path for a plugin that failed to load — it may
-          // be reinstallable, so don't nuke ${CLAUDE_PLUGIN_DATA} silently.
+          // be reinstallable, so don't nuke ${MICROCODE_PLUGIN_DATA} silently.
           // The normal uninstall path prompts; this one preserves.
           const result_2 = isInstallableScope(pluginScope_1) ? await uninstallPluginOp(pluginId_7, pluginScope_1, false) : await uninstallPluginOp(pluginId_7, 'user', false);
           let success = result_2.success;
@@ -1789,7 +1789,7 @@ export function ManagePlugins({
       </Box>;
   }
 
-  // Confirm-data-cleanup: prompt before deleting ${CLAUDE_PLUGIN_DATA} dir
+  // Confirm-data-cleanup: prompt before deleting ${MICROCODE_PLUGIN_DATA} dir
   if (typeof viewState === 'object' && viewState.type === 'confirm-data-cleanup' && selectedPlugin) {
     return <Box flexDirection="column">
         <Text bold>
@@ -2007,13 +2007,13 @@ export function ManagePlugins({
       };
       return <MCPRemoteServerMenu server={server_1} serverToolsCount={serverToolsCount} onViewTools={handleMcpViewTools} onCancel={handleMcpCancel} onComplete={handleMcpComplete} borderless />;
     } else if (configType === 'claudeai-proxy') {
-      const server_2: ClaudeAIServerInfo = {
+      const server_2: MicrocodeAIServerInfo = {
         name: client_3.name,
         client: client_3,
         scope: scope_5,
         transport: 'claudeai-proxy',
         isAuthenticated: undefined,
-        config: client_3.config as McpClaudeAIProxyServerConfig
+        config: client_3.config as McpMicrocodeAIProxyServerConfig
       };
       return <MCPRemoteServerMenu server={server_2} serverToolsCount={serverToolsCount} onViewTools={handleMcpViewTools} onCancel={handleMcpCancel} onComplete={handleMcpComplete} borderless />;
     }
@@ -2030,7 +2030,7 @@ export function ManagePlugins({
     const configType_0 = client_4.config.type;
 
     // Build ServerInfo for MCPToolListView
-    let server_3: StdioServerInfo | SSEServerInfo | HTTPServerInfo | ClaudeAIServerInfo;
+    let server_3: StdioServerInfo | SSEServerInfo | HTTPServerInfo | MicrocodeAIServerInfo;
     if (configType_0 === 'stdio') {
       server_3 = {
         name: client_4.name,
@@ -2064,7 +2064,7 @@ export function ManagePlugins({
         scope: scope_6,
         transport: 'claudeai-proxy',
         isAuthenticated: undefined,
-        config: client_4.config as McpClaudeAIProxyServerConfig
+        config: client_4.config as McpMicrocodeAIProxyServerConfig
       };
     }
     return <MCPToolListView server={server_3} onSelectTool={(tool: Tool) => {
@@ -2089,7 +2089,7 @@ export function ManagePlugins({
     const configType_1 = client_5.config.type;
 
     // Build ServerInfo for MCPToolDetailView
-    let server_4: StdioServerInfo | SSEServerInfo | HTTPServerInfo | ClaudeAIServerInfo;
+    let server_4: StdioServerInfo | SSEServerInfo | HTTPServerInfo | MicrocodeAIServerInfo;
     if (configType_1 === 'stdio') {
       server_4 = {
         name: client_5.name,
@@ -2123,7 +2123,7 @@ export function ManagePlugins({
         scope: scope_7,
         transport: 'claudeai-proxy',
         isAuthenticated: undefined,
-        config: client_5.config as McpClaudeAIProxyServerConfig
+        config: client_5.config as McpMicrocodeAIProxyServerConfig
       };
     }
     return <MCPToolDetailView tool={tool_0} server={server_4} onBack={() => setViewState({

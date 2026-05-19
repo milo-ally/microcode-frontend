@@ -307,7 +307,7 @@ export const SettingsSchema = lazySchema(() =>
           'Command to refresh GCP authentication (e.g., gcloud auth application-default login)',
         ),
       // Gated so the SDK generator (which runs without MICROCODE_ENABLE_XAA)
-      // doesn't surface this in GlobalClaudeSettings. Read via getXaaIdpSettings().
+      // doesn't surface this in GlobalMicrocodeSettings. Read via getXaaIdpSettings().
       // .passthrough() on the outer object keeps an existing settings.json key
       // alive across env-var-off sessions — it's just not schema-validated then.
       ...(isEnvTruthy(process.env.MICROCODE_ENABLE_XAA)
@@ -390,13 +390,13 @@ export const SettingsSchema = lazySchema(() =>
         .optional()
         .describe(
           'Deprecated: Use attribution instead. ' +
-            "Whether to include Claude's co-authored by attribution in commits and PRs (defaults to true)",
+            "Whether to include Microcode's co-authored by attribution in commits and PRs (defaults to true)",
         ),
       includeGitInstructions: z
         .boolean()
         .optional()
         .describe(
-          "Include built-in commit and PR workflow instructions in Claude's system prompt (default: true)",
+          "Include built-in commit and PR workflow instructions in Microcode's system prompt (default: true)",
         ),
       permissions: PermissionsSchema()
         .optional()
@@ -657,12 +657,12 @@ export const SettingsSchema = lazySchema(() =>
             'these exact sources are blocked from being added as marketplaces. The check happens BEFORE ' +
             'downloading, so blocked sources never touch the filesystem.',
         ),
-      // Force a specific login method: 'claudeai' for Claude Pro/Max, 'console' for Console billing
+      // Force a specific login method: 'claudeai' for Microcode Pro/Max, 'console' for Console billing
       forceLoginMethod: z
         .enum(['claudeai', 'console'])
         .optional()
         .describe(
-          'Force a specific login method: "claudeai" for Claude Pro/Max, "console" for Console billing',
+          'Force a specific login method: "claudeai" for Microcode Pro/Max, "console" for Console billing',
         ),
       // Organization UUID to use for OAuth login (will be added as URL param to authorization URL)
       forceLoginOrgUUID: z
@@ -681,7 +681,7 @@ export const SettingsSchema = lazySchema(() =>
         .string()
         .optional()
         .describe(
-          'Preferred language for Claude responses and voice dictation (e.g., "japanese", "spanish")',
+          'Preferred language for Microcode responses and voice dictation (e.g., "japanese", "spanish")',
         ),
       skipWebFetchPreflight: z
         .boolean()
@@ -912,7 +912,7 @@ export const SettingsSchema = lazySchema(() =>
               .boolean()
               .optional()
               .describe(
-                'Start Claude in assistant mode (custom system prompt, brief view, scheduled check-in skills)',
+                'Start Microcode in assistant mode (custom system prompt, brief view, scheduled check-in skills)',
               ),
             assistantName: z
               .string()
@@ -976,7 +976,7 @@ export const SettingsSchema = lazySchema(() =>
         .boolean()
         .optional()
         .describe(
-          'Enable auto-memory for this project. When false, Claude will not read from or write to the auto-memory directory.',
+          'Enable auto-memory for this project. When false, Microcode will not read from or write to the auto-memory directory.',
         ),
       autoMemoryDirectory: z
         .string()

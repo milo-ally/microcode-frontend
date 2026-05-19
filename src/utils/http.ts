@@ -6,15 +6,15 @@ import axios from 'axios'
 import { OAUTH_BETA_HEADER } from '../constants/oauth.js'
 import {
   getAnthropicApiKey,
-  getClaudeAIOAuthTokens,
+  getMicrocodeAIOAuthTokens,
   handleOAuth401Error,
-  isClaudeAISubscriber,
+  isMicrocodeAISubscriber,
 } from './auth.js'
 import {
   getActiveProviderConfig,
   getConfiguredProviderAuthToken,
 } from './model/providerConfig.js'
-import { getClaudeCodeUserAgent } from './userAgent.js'
+import { getMicroCodeUserAgent } from './userAgent.js'
 import { getWorkload } from './workloadContext.js'
 
 function isOpenAICompatibleProviderType(providerType: string | undefined): boolean {
@@ -31,7 +31,7 @@ export function getUserAgent(): string {
   const agentSdkVersion = process.env.MICROCODE_AGENT_SDK_VERSION
     ? `, agent-sdk/${process.env.MICROCODE_AGENT_SDK_VERSION}`
     : ''
-  // SDK consumers can identify their app/library via CLAUDE_AGENT_SDK_CLIENT_APP
+  // SDK consumers can identify their app/library via MICROCODE_AGENT_SDK_CLIENT_APP
   // e.g., "my-app/1.0.0" or "my-library/2.1"
   const clientApp = process.env.MICROCODE_AGENT_SDK_CLIENT_APP
     ? `, client-app/${process.env.MICROCODE_AGENT_SDK_CLIENT_APP}`
@@ -61,12 +61,12 @@ export function getMCPUserAgent(): string {
   return `microcode/${MACRO.VERSION}${suffix}`
 }
 
-// User-Agent for WebFetch requests to arbitrary sites. `Claude-User` is
+// User-Agent for WebFetch requests to arbitrary sites. `Microcode-User` is
 // Anthropic's publicly documented agent for user-initiated fetches (what site
 // operators match in robots.txt); the microcode suffix lets them distinguish
 // local CLI traffic from claude.ai server-side fetches.
 export function getWebFetchUserAgent(): string {
-  return `Claude-User (${getClaudeCodeUserAgent()}; +https://support.anthropic.com/)`
+  return `Microcode-User (${getMicroCodeUserAgent()}; +https://support.anthropic.com/)`
 }
 
 export type AuthHeaders = {
@@ -79,8 +79,8 @@ export type AuthHeaders = {
  * Returns either OAuth headers for Max/Pro users or API key headers for regular users
  */
 export function getAuthHeaders(): AuthHeaders {
-  if (isClaudeAISubscriber()) {
-    const oauthTokens = getClaudeAIOAuthTokens()
+  if (isMicrocodeAISubscriber()) {
+    const oauthTokens = getMicrocodeAIOAuthTokens()
     if (!oauthTokens?.accessToken) {
       return {
         headers: {},
@@ -156,7 +156,7 @@ export async function withOAuth401Retry<T>(
         typeof err.response?.data === 'string' &&
         err.response.data.includes('OAuth token has been revoked'))
     if (!isAuthError) throw err
-    const failedAccessToken = getClaudeAIOAuthTokens()?.accessToken
+    const failedAccessToken = getMicrocodeAIOAuthTokens()?.accessToken
     if (!failedAccessToken) throw err
     await handleOAuth401Error(failedAccessToken)
     return await request()

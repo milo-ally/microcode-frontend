@@ -183,7 +183,7 @@ export function createCronScheduler(
 
     // Only surface missed tasks on initial load. Chokidar-triggered
     // reloads leave overdue tasks to check() (which anchors from createdAt
-    // and fires immediately). This avoids a misleading "missed while Claude
+    // and fires immediately). This avoids a misleading "missed while Microcode
     // was not running" prompt for tasks that became overdue mid-session.
     //
     // Recurring tasks are NOT surfaced or deleted — check() handles them
@@ -405,7 +405,7 @@ export function createCronScheduler(
 
     // Acquire the per-project scheduler lock. Only the owning session runs
     // check(). Other sessions probe periodically to take over if the owner
-    // dies. Prevents double-firing when multiple Claudes share a cwd.
+    // dies. Prevents double-firing when multiple Microcodes share a cwd.
     isOwner = await tryAcquireSchedulerLock(lockOpts).catch(() => false)
     if (stopped) {
       if (isOwner) {
@@ -542,7 +542,7 @@ export function createCronScheduler(
 export function buildMissedTaskNotification(missed: CronTask[]): string {
   const plural = missed.length > 1
   const header =
-    `The following one-shot scheduled task${plural ? 's were' : ' was'} missed while Claude was not running. ` +
+    `The following one-shot scheduled task${plural ? 's were' : ' was'} missed while Microcode was not running. ` +
     `${plural ? 'They have' : 'It has'} already been removed from .microcode/scheduled_tasks.json.\n\n` +
     `Do NOT execute ${plural ? 'these prompts' : 'this prompt'} yet. ` +
     `First use the AskUserQuestion tool to ask whether to run ${plural ? 'each one' : 'it'} now. ` +

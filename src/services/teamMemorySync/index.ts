@@ -29,8 +29,8 @@ import { createHash } from 'crypto'
 import { mkdir, readdir, readFile, stat, writeFile } from 'fs/promises'
 import { join, relative, sep } from 'path'
 import {
-  CLAUDE_AI_INFERENCE_SCOPE,
-  CLAUDE_AI_PROFILE_SCOPE,
+  MICROCODE_AI_INFERENCE_SCOPE,
+  MICROCODE_AI_PROFILE_SCOPE,
   getOauthConfig,
   OAUTH_BETA_HEADER,
 } from '../../constants/oauth.js'
@@ -42,7 +42,7 @@ import {
 import { count } from '../../utils/array.js'
 import {
   checkAndRefreshOAuthTokenIfNeeded,
-  getClaudeAIOAuthTokens,
+  getMicrocodeAIOAuthTokens,
 } from '../../utils/auth.js'
 import { logForDebugging } from '../../utils/debug.js'
 import { classifyAxiosError } from '../../utils/errors.js'
@@ -53,7 +53,7 @@ import {
 } from '../../utils/model/providers.js'
 import { sleep } from '../../utils/sleep.js'
 import { jsonStringify } from '../../utils/slowOperations.js'
-import { getClaudeCodeUserAgent } from '../../utils/userAgent.js'
+import { getMicroCodeUserAgent } from '../../utils/userAgent.js'
 import { logEvent } from '../analytics/index.js'
 import type { AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS } from '../analytics/metadata.js'
 import { getRetryDelay } from '../api/withRetry.js'
@@ -152,11 +152,11 @@ function isUsingOAuth(): boolean {
   if (getAPIProvider() !== 'firstParty' || !isFirstPartyAnthropicBaseUrl()) {
     return false
   }
-  const tokens = getClaudeAIOAuthTokens()
+  const tokens = getMicrocodeAIOAuthTokens()
   return Boolean(
     tokens?.accessToken &&
-      tokens.scopes?.includes(CLAUDE_AI_INFERENCE_SCOPE) &&
-      tokens.scopes.includes(CLAUDE_AI_PROFILE_SCOPE),
+      tokens.scopes?.includes(MICROCODE_AI_INFERENCE_SCOPE) &&
+      tokens.scopes.includes(MICROCODE_AI_PROFILE_SCOPE),
   )
 }
 
@@ -170,13 +170,13 @@ function getAuthHeaders(): {
   headers?: Record<string, string>
   error?: string
 } {
-  const oauthTokens = getClaudeAIOAuthTokens()
+  const oauthTokens = getMicrocodeAIOAuthTokens()
   if (oauthTokens?.accessToken) {
     return {
       headers: {
         Authorization: `Bearer ${oauthTokens.accessToken}`,
         'anthropic-beta': OAUTH_BETA_HEADER,
-        'User-Agent': getClaudeCodeUserAgent(),
+        'User-Agent': getMicroCodeUserAgent(),
       },
     }
   }

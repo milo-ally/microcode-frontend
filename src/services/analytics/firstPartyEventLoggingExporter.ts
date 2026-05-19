@@ -13,12 +13,12 @@ import {
   getIsNonInteractiveSession,
   getSessionId,
 } from '../../bootstrap/state.js'
-import { ClaudeCodeInternalEvent } from '../../types/generated/events_mono/claude_code/v1/claude_code_internal_event.js'
+import { MicroCodeInternalEvent } from '../../types/generated/events_mono/claude_code/v1/claude_code_internal_event.js'
 import { GrowthbookExperimentEvent } from '../../types/generated/events_mono/growthbook/v1/growthbook_experiment_event.js'
 import {
-  getClaudeAIOAuthTokens,
+  getMicrocodeAIOAuthTokens,
   hasProfileScope,
-  isClaudeAISubscriber,
+  isMicrocodeAISubscriber,
 } from '../../utils/auth.js'
 import { checkHasTrustDialogAccepted } from '../../utils/config.js'
 import { logForDebugging } from '../../utils/debug.js'
@@ -29,7 +29,7 @@ import { readJSONLFile } from '../../utils/json.js'
 import { logError } from '../../utils/log.js'
 import { sleep } from '../../utils/sleep.js'
 import { jsonStringify } from '../../utils/slowOperations.js'
-import { getClaudeCodeUserAgent } from '../../utils/userAgent.js'
+import { getMicroCodeUserAgent } from '../../utils/userAgent.js'
 import { isOAuthTokenExpired } from '../oauth/client.js'
 import { stripProtoFields } from './index.js'
 import { type EventMetadata, to1PEventFormat } from './metadata.js'
@@ -40,14 +40,14 @@ const BATCH_UUID = randomUUID()
 // File prefix for failed event storage
 const FILE_PREFIX = '1p_failed_events.'
 
-// Storage directory for failed events - evaluated at runtime to respect CLAUDE_CONFIG_DIR in tests
+// Storage directory for failed events - evaluated at runtime to respect MICROCODE_CONFIG_DIR in tests
 function getStorageDir(): string {
   return path.join(getMicrocodeConfigHomeDir(), 'telemetry')
 }
 
 // API envelope - event_data is the JSON output from proto toJSON()
 type FirstPartyEventLoggingEvent = {
-  event_type: 'ClaudeCodeInternalEvent' | 'GrowthbookExperimentEvent'
+  event_type: 'MicroCodeInternalEvent' | 'GrowthbookExperimentEvent'
   event_data: unknown
 }
 
@@ -537,7 +537,7 @@ export class FirstPartyEventLoggingExporter implements LogRecordExporter {
 
     const baseHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
-      'User-Agent': getClaudeCodeUserAgent(),
+      'User-Agent': getMicroCodeUserAgent(),
       'x-service-name': 'microcode',
     }
 
@@ -553,8 +553,8 @@ export class FirstPartyEventLoggingExporter implements LogRecordExporter {
     // Skip auth when the OAuth token is expired or lacks user:profile
     // scope (service key sessions). Falls through to unauthenticated send.
     let shouldSkipAuth = this.skipAuth || !hasTrust
-    if (!shouldSkipAuth && isClaudeAISubscriber()) {
-      const tokens = getClaudeAIOAuthTokens()
+    if (!shouldSkipAuth && isMicrocodeAISubscriber()) {
+      const tokens = getMicrocodeAIOAuthTokens()
       if (!hasProfileScope()) {
         shouldSkipAuth = true
       } else if (tokens && isOAuthTokenExpired(tokens.expiresAt)) {
@@ -688,8 +688,8 @@ export class FirstPartyEventLoggingExporter implements LogRecordExporter {
           )
         }
         events.push({
-          event_type: 'ClaudeCodeInternalEvent',
-          event_data: ClaudeCodeInternalEvent.toJSON({
+          event_type: 'MicroCodeInternalEvent',
+          event_data: MicroCodeInternalEvent.toJSON({
             event_id: attributes.event_id as string | undefined,
             event_name: eventName,
             client_timestamp: this.hrTimeToDate(log.hrTime),
@@ -725,8 +725,8 @@ export class FirstPartyEventLoggingExporter implements LogRecordExporter {
       const additionalMetadata = stripProtoFields(rest)
 
       events.push({
-        event_type: 'ClaudeCodeInternalEvent',
-        event_data: ClaudeCodeInternalEvent.toJSON({
+        event_type: 'MicroCodeInternalEvent',
+        event_data: MicroCodeInternalEvent.toJSON({
           event_id: attributes.event_id as string | undefined,
           event_name: eventName,
           client_timestamp: this.hrTimeToDate(log.hrTime),

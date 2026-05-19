@@ -3,7 +3,7 @@ import { getCwd } from '../../utils/cwd.js'
 import { registerBundledSkill } from '../bundledSkills.js'
 
 // microcodeApiContent.js bundles 247KB of .md strings. Lazy-load inside
-// getPromptForCommand so they only enter memory when /claude-api is invoked.
+// getPromptForCommand so they only enter memory when /microcode-api is invoked.
 type SkillContent = typeof import('./microcodeApiContent.js')
 
 type DetectedLanguage =
@@ -100,25 +100,25 @@ The relevant documentation for your detected language is included below in \`<do
 ### Quick Task Reference
 
 **Single text classification/summarization/extraction/Q&A:**
-→ Refer to \`{lang}/claude-api/README.md\`
+→ Refer to \`{lang}/microcode-api/README.md\`
 
 **Chat UI or real-time response display:**
-→ Refer to \`{lang}/claude-api/README.md\` + \`{lang}/claude-api/streaming.md\`
+→ Refer to \`{lang}/microcode-api/README.md\` + \`{lang}/microcode-api/streaming.md\`
 
 **Long-running conversations (may exceed context window):**
-→ Refer to \`{lang}/claude-api/README.md\` — see Compaction section
+→ Refer to \`{lang}/microcode-api/README.md\` — see Compaction section
 
 **Prompt caching / optimize caching / "why is my cache hit rate low":**
-→ Refer to \`shared/prompt-caching.md\` + \`{lang}/claude-api/README.md\` (Prompt Caching section)
+→ Refer to \`shared/prompt-caching.md\` + \`{lang}/microcode-api/README.md\` (Prompt Caching section)
 
 **Function calling / tool use / agents:**
-→ Refer to \`{lang}/claude-api/README.md\` + \`shared/tool-use-concepts.md\` + \`{lang}/claude-api/tool-use.md\`
+→ Refer to \`{lang}/microcode-api/README.md\` + \`shared/tool-use-concepts.md\` + \`{lang}/microcode-api/tool-use.md\`
 
 **Batch processing (non-latency-sensitive):**
-→ Refer to \`{lang}/claude-api/README.md\` + \`{lang}/claude-api/batches.md\`
+→ Refer to \`{lang}/microcode-api/README.md\` + \`{lang}/microcode-api/batches.md\`
 
 **File uploads across multiple requests:**
-→ Refer to \`{lang}/claude-api/README.md\` + \`{lang}/claude-api/files-api.md\`
+→ Refer to \`{lang}/microcode-api/README.md\` + \`{lang}/microcode-api/files-api.md\`
 
 **Agent with built-in tools (file/web/terminal) (Python & TypeScript only):**
 → Refer to \`{lang}/agent-sdk/README.md\` + \`{lang}/agent-sdk/patterns.md\`
@@ -177,12 +177,12 @@ function buildPrompt(
   return parts.join('\n\n')
 }
 
-export function registerClaudeApiSkill(): void {
+export function registerMicrocodeApiSkill(): void {
   registerBundledSkill({
-    name: 'claude-api',
+    name: 'microcode-api',
     description:
-      'Build apps with the Claude API or Anthropic SDK.\n' +
-      'TRIGGER when: code imports `anthropic`/`@anthropic-ai/sdk`/`claude_agent_sdk`, or user asks to use Claude API, Anthropic SDKs, or Agent SDK.\n' +
+      'Build apps with the Microcode API or Anthropic SDK.\n' +
+      'TRIGGER when: code imports `anthropic`/`@anthropic-ai/sdk`/`claude_agent_sdk`, or user asks to use Microcode API, Anthropic SDKs, or Agent SDK.\n' +
       'DO NOT TRIGGER when: code imports `openai`/other AI SDK, general programming, or ML/data-science tasks.',
     allowedTools: ['Read', 'Grep', 'Glob', 'WebFetch'],
     userInvocable: true,

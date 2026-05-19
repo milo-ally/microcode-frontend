@@ -1273,7 +1273,7 @@ async function cacheMarketplaceFromUrl(
   const headers = {
     ...customHeaders,
     // User-Agent must come last to prevent override (for consistency with WebFetch)
-    'User-Agent': 'Claude-Code-Plugin-Manager',
+    'User-Agent': 'Microcode-Code-Plugin-Manager',
   }
 
   let response
@@ -1698,18 +1698,18 @@ async function loadAndCacheMarketplace(
         throw new Error(`Unsupported marketplace source type`)
     }
 
-    // Fallback: if .microcode-plugin/marketplace.json not found, try .claude-plugin/
-    // (upstream repos like anthropics/claude-plugins-official use .claude-plugin)
+    // Fallback: if .microcode-plugin/marketplace.json not found, try .microcode-plugin/
+    // (upstream repos like anthropics/claude-plugins-official use .microcode-plugin)
     if (
       marketplacePath.includes('.microcode-plugin') &&
       !(await fileExists(marketplacePath))
     ) {
-      const claudePluginPath = marketplacePath.replace(
+      const microcodePluginPath = marketplacePath.replace(
         '.microcode-plugin',
-        '.claude-plugin',
+        '.microcode-plugin',
       )
-      if (await fileExists(claudePluginPath)) {
-        marketplacePath = claudePluginPath
+      if (await fileExists(microcodePluginPath)) {
+        marketplacePath = microcodePluginPath
       }
     }
 
@@ -2095,10 +2095,10 @@ async function readCachedMarketplace(
     const code = getErrnoCode(e)
     if (code !== 'ENOENT' && code !== 'ENOTDIR') throw e
   }
-  // Fallback: try .claude-plugin/ (upstream repos use this name)
-  const claudePluginPath = join(installLocation, '.claude-plugin', 'marketplace.json')
+  // Fallback: try .microcode-plugin/ (upstream repos use this name)
+  const microcodePluginPath = join(installLocation, '.microcode-plugin', 'marketplace.json')
   try {
-    return await parseFileWithSchema(claudePluginPath, PluginMarketplaceSchema())
+    return await parseFileWithSchema(microcodePluginPath, PluginMarketplaceSchema())
   } catch (e) {
     if (e instanceof ConfigParseError) throw e
     const code = getErrnoCode(e)
@@ -2175,7 +2175,7 @@ export const getMarketplace = memoize(
       throw new Error(
         `Marketplace "${name}" has a relative source path (${entry.source.path}) ` +
           `in known_marketplaces.json — this is stale state from an older ` +
-          `Microcode version. Run 'claude marketplace remove ${name}' and ` +
+          `Microcode version. Run 'microcode marketplace remove ${name}' and ` +
           `re-add it from the original project directory.`,
       )
     }

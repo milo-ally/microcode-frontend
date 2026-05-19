@@ -1,4 +1,4 @@
-# Java Claude API
+# Java Microcode API
 
 For Java, a simple `HttpClient` integration is enough to get started.
 

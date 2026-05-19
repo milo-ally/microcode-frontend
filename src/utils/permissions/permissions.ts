@@ -205,7 +205,7 @@ export function createPermissionRequestMessage(
   }
 
   // Default message without listing allowed commands
-  const message = `Claude requested permissions to use ${toolName}, but you haven't granted it yet.`
+  const message = `Microcode requested permissions to use ${toolName}, but you haven't granted it yet.`
 
   return message
 }
@@ -245,7 +245,7 @@ function toolMatchesRule(
   }
 
   // MCP tools are matched by their fully qualified mcp__server__tool name. In
-  // skip-prefix mode (CLAUDE_AGENT_SDK_MCP_NO_PREFIX), MCP tools have unprefixed
+  // skip-prefix mode (MICROCODE_AGENT_SDK_MCP_NO_PREFIX), MCP tools have unprefixed
   // display names (e.g., "Write") that collide with builtin names; rules targeting
   // builtins should not match their MCP replacements.
   const nameForRuleMatch = getToolNameForPermissionCheck(tool)

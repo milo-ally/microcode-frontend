@@ -4,7 +4,7 @@
  * 1. Managed memory (eg. /etc/microcode/MICROCODE.md) - Global instructions for all users
  * 2. User memory (~/.microcode/MICROCODE.md) - Private global instructions for all projects
  * 3. Project memory (MICROCODE.md, .microcode/MICROCODE.md, and .microcode/rules/*.md in project roots) - Instructions checked into the codebase
- * 4. Local memory (CLAUDE.local.md in project roots) - Private project-specific instructions
+ * 4. Local memory (MICROCODE.local.md in project roots) - Private project-specific instructions
  *
  * Files are loaded in reverse order of priority, i.e. the latest files are highest priority
  * with the model paying more attention to them.
@@ -50,9 +50,9 @@ import { getAutoMemEntrypoint, isAutoMemoryEnabled } from '../memdir/paths.js'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../services/analytics/growthbook.js'
 import {
   getCurrentProjectConfig,
-  getManagedClaudeRulesDir,
+  getManagedMicrocodeRulesDir,
   getMemoryPath,
-  getUserClaudeRulesDir,
+  getUserMicrocodeRulesDir,
 } from './config.js'
 import { logForDebugging } from './debug.js'
 import { logForDiagnosticsNoPII } from './diagLogs.js'
@@ -811,10 +811,10 @@ export const getMemoryFiles = memoize(
       )),
     )
     // Process Managed .microcode/rules/*.md files
-    const managedClaudeRulesDir = getManagedClaudeRulesDir()
+    const managedMicrocodeRulesDir = getManagedMicrocodeRulesDir()
     result.push(
       ...(await processMdRules({
-        rulesDir: managedClaudeRulesDir,
+        rulesDir: managedMicrocodeRulesDir,
         type: 'Managed',
         processedPaths,
         includeExternal,
@@ -834,10 +834,10 @@ export const getMemoryFiles = memoize(
         )),
       )
       // Process User ~/.microcode/rules/*.md files
-      const userClaudeRulesDir = getUserClaudeRulesDir()
+      const userMicrocodeRulesDir = getUserMicrocodeRulesDir()
       result.push(
         ...(await processMdRules({
-          rulesDir: userClaudeRulesDir,
+          rulesDir: userMicrocodeRulesDir,
           type: 'User',
           processedPaths,
           includeExternal: true,
@@ -862,7 +862,7 @@ export const getMemoryFiles = memoize(
     // checked-in files like MICROCODE.md and .microcode/rules/*.md, so the same
     // content gets loaded twice. Skip Project-type (checked-in) files from
     // directories above the worktree but within the main repo — the worktree
-    // already has its own checkout. CLAUDE.local.md is gitignored so it only
+    // already has its own checkout. MICROCODE.local.md is gitignored so it only
     // exists in the main repo and is still loaded.
     // See: https://github.com/anthropics/claude-code/issues/29599
     const gitRoot = findGitRoot(originalCwd)
@@ -896,10 +896,10 @@ export const getMemoryFiles = memoize(
         )
 
         // Try reading .microcode/MICROCODE.md (Project)
-        const dotClaudePath = join(dir, '.microcode', 'MICROCODE.md')
+        const dotMicrocodePath = join(dir, '.microcode', 'MICROCODE.md')
         result.push(
           ...(await processMemoryFile(
-            dotClaudePath,
+            dotMicrocodePath,
             'Project',
             processedPaths,
             includeExternal,
@@ -919,9 +919,9 @@ export const getMemoryFiles = memoize(
         )
       }
 
-      // Try reading CLAUDE.local.md (Local) - only if localSettings is enabled
+      // Try reading MICROCODE.local.md (Local) - only if localSettings is enabled
       if (isSettingSourceEnabled('localSettings')) {
-        const localPath = join(dir, 'CLAUDE.local.md')
+        const localPath = join(dir, 'MICROCODE.local.md')
         result.push(
           ...(await processMemoryFile(
             localPath,
@@ -934,10 +934,10 @@ export const getMemoryFiles = memoize(
     }
 
     // Process MICROCODE.md from additional directories (--add-dir) if env var is enabled
-    // This is controlled by MICROCODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD and defaults to off
+    // This is controlled by MICROCODE_ADDITIONAL_DIRECTORIES_MICROCODE_MD and defaults to off
     // Note: we don't check isSettingSourceEnabled('projectSettings') here because --add-dir
     // is an explicit user action and the SDK defaults settingSources to [] when not specified
-    if (isEnvTruthy(process.env.MICROCODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD)) {
+    if (isEnvTruthy(process.env.MICROCODE_ADDITIONAL_DIRECTORIES_MICROCODE_MD)) {
       const additionalDirs = getAdditionalDirectoriesForMicrocodeMd()
       for (const dir of additionalDirs) {
         // Try reading MICROCODE.md from the additional directory
@@ -952,10 +952,10 @@ export const getMemoryFiles = memoize(
         )
 
         // Try reading .microcode/MICROCODE.md from the additional directory
-        const dotClaudePath = join(dir, '.microcode', 'MICROCODE.md')
+        const dotMicrocodePath = join(dir, '.microcode', 'MICROCODE.md')
         result.push(
           ...(await processMemoryFile(
-            dotClaudePath,
+            dotMicrocodePath,
             'Project',
             processedPaths,
             includeExternal,
@@ -1209,11 +1209,11 @@ export async function getManagedAndUserConditionalRules(
   const result: MemoryFileInfo[] = []
 
   // Process Managed conditional .microcode/rules/*.md files
-  const managedClaudeRulesDir = getManagedClaudeRulesDir()
+  const managedMicrocodeRulesDir = getManagedMicrocodeRulesDir()
   result.push(
     ...(await processConditionedMdRules(
       targetPath,
-      managedClaudeRulesDir,
+      managedMicrocodeRulesDir,
       'Managed',
       processedPaths,
       false,
@@ -1222,11 +1222,11 @@ export async function getManagedAndUserConditionalRules(
 
   if (isSettingSourceEnabled('userSettings')) {
     // Process User conditional .microcode/rules/*.md files
-    const userClaudeRulesDir = getUserClaudeRulesDir()
+    const userMicrocodeRulesDir = getUserMicrocodeRulesDir()
     result.push(
       ...(await processConditionedMdRules(
         targetPath,
-        userClaudeRulesDir,
+        userMicrocodeRulesDir,
         'User',
         processedPaths,
         true,
@@ -1264,10 +1264,10 @@ export async function getMemoryFilesForNestedDirectory(
         false,
       )),
     )
-    const dotClaudePath = join(dir, '.microcode', 'MICROCODE.md')
+    const dotMicrocodePath = join(dir, '.microcode', 'MICROCODE.md')
     result.push(
       ...(await processMemoryFile(
-        dotClaudePath,
+        dotMicrocodePath,
         'Project',
         processedPaths,
         false,
@@ -1275,9 +1275,9 @@ export async function getMemoryFilesForNestedDirectory(
     )
   }
 
-  // Process local memory file (CLAUDE.local.md)
+  // Process local memory file (MICROCODE.local.md)
   if (isSettingSourceEnabled('localSettings')) {
-    const localPath = join(dir, 'CLAUDE.local.md')
+    const localPath = join(dir, 'MICROCODE.local.md')
     result.push(
       ...(await processMemoryFile(localPath, 'Local', processedPaths, false)),
     )
@@ -1430,20 +1430,20 @@ export async function shouldShowMicrocodeMdExternalIncludesWarning(): Promise<bo
 }
 
 /**
- * Check if a file path is a memory file (MICROCODE.md, CLAUDE.local.md, or .microcode/rules/*.md)
+ * Check if a file path is a memory file (MICROCODE.md, MICROCODE.local.md, or .microcode/rules/*.md)
  */
 export function isMemoryFilePath(filePath: string): boolean {
   const name = basename(filePath)
 
-  // MICROCODE.md or CLAUDE.local.md anywhere
-  if (name === 'MICROCODE.md' || name === 'CLAUDE.local.md') {
+  // MICROCODE.md or MICROCODE.local.md anywhere
+  if (name === 'MICROCODE.md' || name === 'MICROCODE.local.md') {
     return true
   }
 
   // .md files in .microcode/rules/ directories
   if (
     name.endsWith('.md') &&
-    filePath.includes(`${sep}.claude${sep}rules${sep}`)
+    filePath.includes(`${sep}.microcode${sep}rules${sep}`)
   ) {
     return true
   }

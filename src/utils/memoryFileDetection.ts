@@ -124,7 +124,7 @@ function isAgentMemFile(filePath: string): boolean {
 }
 
 /**
- * Check if a file is a Claude-managed memory file (NOT user-managed instruction files).
+ * Check if a file is a Microcode-managed memory file (NOT user-managed instruction files).
  * Includes: auto-memory (memdir), agent memory, session memory/transcripts.
  * Excludes: MICROCODE.md, CLAUDE.local.md, .microcode/rules/*.md (user-managed).
  *
@@ -173,7 +173,7 @@ export function isMemoryDirectory(dirPath: string): boolean {
   ) {
     return true
   }
-  // Check the auto-memory path override (CLAUDE_COWORK_MEMORY_PATH_OVERRIDE)
+  // Check the auto-memory path override (MICROCODE_COWORK_MEMORY_PATH_OVERRIDE)
   if (isAutoMemoryEnabled()) {
     const autoMemPath = getAutoMemPath()
     const autoMemDirCmp = toComparable(autoMemPath.replace(/[/\\]+$/, ''))

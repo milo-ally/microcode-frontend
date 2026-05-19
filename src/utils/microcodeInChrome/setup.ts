@@ -22,7 +22,7 @@ import { execFileNoThrowWithCwd } from '../execFileNoThrow.js'
 import { getPlatform } from '../platform.js'
 import { jsonStringify } from '../slowOperations.js'
 import {
-  CLAUDE_IN_CHROME_MCP_SERVER_NAME,
+  MICROCODE_IN_CHROME_MCP_SERVER_NAME,
   getAllBrowserDataPaths,
   getAllNativeMessagingHostsDirs,
   getAllWindowsRegistryKeys,
@@ -36,7 +36,7 @@ const CHROME_EXTENSION_RECONNECT_URL = 'https://clau.de/chrome/reconnect'
 const NATIVE_HOST_IDENTIFIER = 'com.anthropic.claude_code_browser_extension'
 const NATIVE_HOST_MANIFEST_NAME = `${NATIVE_HOST_IDENTIFIER}.json`
 
-export function shouldEnableClaudeInChrome(chromeFlag?: boolean): boolean {
+export function shouldEnableMicrocodeInChrome(chromeFlag?: boolean): boolean {
   // Disable by default in non-interactive sessions (e.g., SDK, CI)
   if (getIsNonInteractiveSession() && chromeFlag !== true) {
     return false
@@ -60,8 +60,8 @@ export function shouldEnableClaudeInChrome(chromeFlag?: boolean): boolean {
 
   // Check default config settings
   const config = getGlobalConfig()
-  if (config.claudeInChromeDefaultEnabled !== undefined) {
-    return config.claudeInChromeDefaultEnabled
+  if (config.microcodeInChromeDefaultEnabled !== undefined) {
+    return config.microcodeInChromeDefaultEnabled
   }
 
   return false
@@ -69,7 +69,7 @@ export function shouldEnableClaudeInChrome(chromeFlag?: boolean): boolean {
 
 let shouldAutoEnable: boolean | undefined = undefined
 
-export function shouldAutoEnableClaudeInChrome(): boolean {
+export function shouldAutoEnableMicrocodeInChrome(): boolean {
   if (shouldAutoEnable !== undefined) {
     return shouldAutoEnable
   }
@@ -84,23 +84,23 @@ export function shouldAutoEnableClaudeInChrome(): boolean {
 }
 
 /**
- * Setup Claude in Chrome MCP server and tools
+ * Setup Microcode in Chrome MCP server and tools
  *
  * @returns MCP config and allowed tools, or throws an error if platform is unsupported
  */
-export function setupClaudeInChrome(): {
+export function setupMicrocodeInChrome(): {
   mcpConfig: Record<string, ScopedMcpServerConfig>
   allowedTools: string[]
   systemPrompt: string
 } {
   const isNativeBuild = isInBundledMode()
   const allowedTools = BROWSER_TOOLS.map(
-    tool => `mcp__claude-in-chrome__${tool.name}`,
+    tool => `mcp__microcode-in-chrome__${tool.name}`,
   )
 
   const env: Record<string, string> = {}
   if (getSessionBypassPermissionsMode()) {
-    env.CLAUDE_CHROME_PERMISSION_MODE = 'skip_all_permission_checks'
+    env.MICROCODE_CHROME_PERMISSION_MODE = 'skip_all_permission_checks'
   }
   const hasEnv = Object.keys(env).length > 0
 
@@ -116,17 +116,17 @@ export function setupClaudeInChrome(): {
       )
       .catch(e =>
         logForDebugging(
-          `[Claude in Chrome] Failed to install native host: ${e}`,
+          `[Microcode in Chrome] Failed to install native host: ${e}`,
           { level: 'error' },
         ),
       )
 
     return {
       mcpConfig: {
-        [CLAUDE_IN_CHROME_MCP_SERVER_NAME]: {
+        [MICROCODE_IN_CHROME_MCP_SERVER_NAME]: {
           type: 'stdio' as const,
           command: process.execPath,
-          args: ['--claude-in-chrome-mcp'],
+          args: ['--microcode-in-chrome-mcp'],
           scope: 'dynamic' as const,
           ...(hasEnv && { env }),
         },
@@ -147,16 +147,16 @@ export function setupClaudeInChrome(): {
       )
       .catch(e =>
         logForDebugging(
-          `[Claude in Chrome] Failed to install native host: ${e}`,
+          `[Microcode in Chrome] Failed to install native host: ${e}`,
           { level: 'error' },
         ),
       )
 
     const mcpConfig = {
-      [CLAUDE_IN_CHROME_MCP_SERVER_NAME]: {
+      [MICROCODE_IN_CHROME_MCP_SERVER_NAME]: {
         type: 'stdio' as const,
         command: process.execPath,
-        args: [`${cliPath}`, '--claude-in-chrome-mcp'],
+        args: [`${cliPath}`, '--microcode-in-chrome-mcp'],
         scope: 'dynamic' as const,
         ...(hasEnv && { env }),
       },
@@ -193,7 +193,7 @@ export async function installChromeNativeHostManifest(
 ): Promise<void> {
   const manifestDirs = getNativeMessagingHostsDirs()
   if (manifestDirs.length === 0) {
-    throw Error('Claude in Chrome Native Host not supported on this platform')
+    throw Error('Microcode in Chrome Native Host not supported on this platform')
   }
 
   const manifest = {
@@ -231,13 +231,13 @@ export async function installChromeNativeHostManifest(
       await mkdir(manifestDir, { recursive: true })
       await writeFile(manifestPath, manifestContent)
       logForDebugging(
-        `[Claude in Chrome] Installed native host manifest at: ${manifestPath}`,
+        `[Microcode in Chrome] Installed native host manifest at: ${manifestPath}`,
       )
       anyManifestUpdated = true
     } catch (error) {
       // Log but don't fail - the browser might not be installed
       logForDebugging(
-        `[Claude in Chrome] Failed to install manifest at ${manifestPath}: ${error}`,
+        `[Microcode in Chrome] Failed to install manifest at ${manifestPath}: ${error}`,
       )
     }
   }
@@ -253,12 +253,12 @@ export async function installChromeNativeHostManifest(
     void isChromeExtensionInstalled().then(isInstalled => {
       if (isInstalled) {
         logForDebugging(
-          `[Claude in Chrome] First-time install detected, opening reconnect page in browser`,
+          `[Microcode in Chrome] First-time install detected, opening reconnect page in browser`,
         )
         void openInChrome(CHROME_EXTENSION_RECONNECT_URL)
       } else {
         logForDebugging(
-          `[Claude in Chrome] First-time install detected, but extension not installed, skipping reconnect`,
+          `[Microcode in Chrome] First-time install detected, but extension not installed, skipping reconnect`,
         )
       }
     })
@@ -287,11 +287,11 @@ function registerWindowsNativeHosts(manifestPath: string): void {
     ]).then(result => {
       if (result.code === 0) {
         logForDebugging(
-          `[Claude in Chrome] Registered native host for ${browser} in Windows registry: ${fullKey}`,
+          `[Microcode in Chrome] Registered native host for ${browser} in Windows registry: ${fullKey}`,
         )
       } else {
         logForDebugging(
-          `[Claude in Chrome] Failed to register native host for ${browser} in Windows registry: ${result.stderr}`,
+          `[Microcode in Chrome] Failed to register native host for ${browser} in Windows registry: ${result.stderr}`,
         )
       }
     })
@@ -302,7 +302,7 @@ function registerWindowsNativeHosts(manifestPath: string): void {
  * Create a wrapper script in ~/.microcode/chrome/ that invokes the given command. This is
  * necessary because Chrome's native host manifest "path" field cannot contain arguments.
  *
- * @param command - The full command to execute (e.g., "/path/to/claude --chrome-native-host")
+ * @param command - The full command to execute (e.g., "/path/to/microcode --chrome-native-host")
  * @returns The path to the wrapper script
  */
 async function createWrapperScript(command: string): Promise<string> {
@@ -340,7 +340,7 @@ exec ${command}
   }
 
   logForDebugging(
-    `[Claude in Chrome] Created Chrome native host wrapper script: ${wrapperPath}`,
+    `[Microcode in Chrome] Created Chrome native host wrapper script: ${wrapperPath}`,
   )
   return wrapperPath
 }
@@ -383,7 +383,7 @@ function isChromeExtensionInstalled_CACHED_MAY_BE_STALE(): boolean {
 }
 
 /**
- * Detects if the Claude in Chrome extension is installed by checking the Extensions
+ * Detects if the Microcode in Chrome extension is installed by checking the Extensions
  * directory across all supported Chromium-based browsers and their profiles.
  *
  * @returns Object with isInstalled boolean and the browser where the extension was found
@@ -392,7 +392,7 @@ export async function isChromeExtensionInstalled(): Promise<boolean> {
   const browserPaths = getAllBrowserDataPaths()
   if (browserPaths.length === 0) {
     logForDebugging(
-      `[Claude in Chrome] Unsupported platform for extension detection: ${getPlatform()}`,
+      `[Microcode in Chrome] Unsupported platform for extension detection: ${getPlatform()}`,
     )
     return false
   }

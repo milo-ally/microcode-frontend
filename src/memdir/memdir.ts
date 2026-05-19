@@ -110,7 +110,7 @@ const teamMemPrompts = feature('TEAMMEM')
 
 /**
  * Shared guidance text appended to each memory directory prompt line.
- * Shipped because Claude was burning turns on `ls`/`mkdir -p` before writing.
+ * Shipped because Microcode was burning turns on `ls`/`mkdir -p` before writing.
  * Harness guarantees the directory exists via ensureMemoryDirExists().
  */
 export const DIR_EXISTS_GUIDANCE =

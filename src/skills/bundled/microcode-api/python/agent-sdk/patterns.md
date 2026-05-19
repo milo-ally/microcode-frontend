@@ -29,7 +29,7 @@ Best for REPLs, chat UIs, or multi-step repair loops.
 
 ## Pattern 3: custom tools
 
-Expose deterministic local logic as tools and let Claude decide when to call them.
+Expose deterministic local logic as tools and let Microcode decide when to call them.
 
 ```python
 from claude_agent_sdk import tool
@@ -60,4 +60,4 @@ Enable partial messages when building terminal or web interfaces that should ren
 ## When not to use the Agent SDK
 
 - Use the Anthropic Python SDK for plain `messages.create(...)` workflows.
-- Use the Messages API directly when you need raw API semantics, provider portability, or no Claude Code dependency.
+- Use the Messages API directly when you need raw API semantics, provider portability, or no Microcode dependency.

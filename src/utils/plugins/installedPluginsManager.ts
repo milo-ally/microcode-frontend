@@ -794,7 +794,7 @@ export function removeAllPluginsForMarketplace(marketplaceName: string): {
  * - user/managed scopes: always relevant (global)
  * - project/local scopes: only if projectPath matches the current project
  *
- * getOriginalCwd() (not getCwd()) because "current project" is where Claude
+ * getOriginalCwd() (not getCwd()) because "current project" is where Microcode
  * Code was launched from, not wherever the working directory has drifted to.
  */
 export function isInstallationRelevantToCurrentProject(
@@ -1014,9 +1014,9 @@ function getPluginVersionFromManifest(
   const fs = getFsImplementation()
   let manifestPath = join(pluginCachePath, '.microcode-plugin', 'plugin.json')
   if (!fs.existsSync(manifestPath)) {
-    const claudePluginPath = join(pluginCachePath, '.claude-plugin', 'plugin.json')
-    if (fs.existsSync(claudePluginPath)) {
-      manifestPath = claudePluginPath
+    const microcodePluginPath = join(pluginCachePath, '.microcode-plugin', 'plugin.json')
+    if (fs.existsSync(microcodePluginPath)) {
+      manifestPath = microcodePluginPath
     }
   }
 
@@ -1226,8 +1226,8 @@ export async function migrateFromEnabledPlugins(): Promise<void> {
 
           installPath = pluginCachePath
 
-          // Only read manifest if the .microcode-plugin or .claude-plugin dir is present
-          if (dirEntries.includes('.microcode-plugin') || dirEntries.includes('.claude-plugin')) {
+          // Only read manifest if the .microcode-plugin or .microcode-plugin dir is present
+          if (dirEntries.includes('.microcode-plugin') || dirEntries.includes('.microcode-plugin')) {
             version = getPluginVersionFromManifest(pluginCachePath, pluginId)
           }
 

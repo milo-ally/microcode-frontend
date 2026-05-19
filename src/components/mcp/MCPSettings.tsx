@@ -2,7 +2,7 @@ import { c as _c } from "react/compiler-runtime";
 import React, { useEffect, useMemo } from 'react';
 import type { CommandResultDisplay } from '../../commands.js';
 import { MicrocodeAuthProvider } from '../../services/mcp/auth.js';
-import type { McpClaudeAIProxyServerConfig, McpHTTPServerConfig, McpSSEServerConfig, McpStdioServerConfig } from '../../services/mcp/types.js';
+import type { McpMicrocodeAIProxyServerConfig, McpHTTPServerConfig, McpSSEServerConfig, McpStdioServerConfig } from '../../services/mcp/types.js';
 import { extractAgentMcpServers, filterToolsByServer } from '../../services/mcp/utils.js';
 import { useAppState } from '../../state/AppState.js';
 import { getSessionIngressAuthToken } from '../../utils/sessionIngressAuth.js';
@@ -72,7 +72,7 @@ export function MCPSettings(t0) {
           const scope = client_0.config.scope;
           const isSSE = client_0.config.type === "sse";
           const isHTTP = client_0.config.type === "http";
-          const isClaudeAIProxy = client_0.config.type === "claudeai-proxy";
+          const isMicrocodeAIProxy = client_0.config.type === "claudeai-proxy";
           let isAuthenticated = undefined;
           if (isSSE || isHTTP) {
             const authProvider = new MicrocodeAuthProvider(client_0.name, client_0.config as McpSSEServerConfig | McpHTTPServerConfig);
@@ -86,12 +86,12 @@ export function MCPSettings(t0) {
             client: client_0,
             scope
           };
-          if (isClaudeAIProxy) {
+          if (isMicrocodeAIProxy) {
             return {
               ...baseInfo,
               transport: "claudeai-proxy" as const,
               isAuthenticated: false,
-              config: client_0.config as McpClaudeAIProxyServerConfig
+              config: client_0.config as McpMicrocodeAIProxyServerConfig
             };
           } else {
             if (isSSE) {

@@ -13,7 +13,7 @@ const GITHUB_PROVIDER_SECRET_ENVS = [
  * Actions. This prevents prompt-injection attacks from exfiltrating secrets
  * via shell expansion (e.g., ${ANTHROPIC_API_KEY}) in Bash tool commands.
  *
- * The parent claude process keeps these vars (needed for API calls, lazy
+ * The parent microcode process keeps these vars (needed for API calls, lazy
  * credential reads). Only child processes (bash, shell snapshot, MCP stdio, LSP, hooks) are scrubbed.
  *
  * GITHUB_TOKEN / GH_TOKEN are intentionally NOT scrubbed — wrapper scripts
@@ -21,7 +21,7 @@ const GITHUB_PROVIDER_SECRET_ENVS = [
  * expires when the workflow ends.
  */
 const GHA_SUBPROCESS_SCRUB = [
-  // Anthropic auth — claude re-reads these per-request, subprocesses don't need them
+  // Anthropic auth — microcode re-reads these per-request, subprocesses don't need them
   'ANTHROPIC_API_KEY',
   'MICROCODE_OAUTH_TOKEN',
   'ANTHROPIC_AUTH_TOKEN',
@@ -43,7 +43,7 @@ const GHA_SUBPROCESS_SCRUB = [
   'AZURE_CLIENT_SECRET',
   'AZURE_CLIENT_CERTIFICATE_PATH',
 
-  // GitHub Actions OIDC — consumed by the action's JS before claude spawns;
+  // GitHub Actions OIDC — consumed by the action's JS before microcode spawns;
   // leaking these allows minting an App installation token → repo takeover
   'ACTIONS_ID_TOKEN_REQUEST_TOKEN',
   'ACTIONS_ID_TOKEN_REQUEST_URL',
@@ -53,7 +53,7 @@ const GHA_SUBPROCESS_SCRUB = [
   'ACTIONS_RUNTIME_URL',
 
   // microcode-code-action-specific duplicates — action JS consumes these during
-  // prepare, before spawning claude. ALL_INPUTS contains anthropic_api_key as JSON.
+  // prepare, before spawning microcode. ALL_INPUTS contains anthropic_api_key as JSON.
   'ALL_INPUTS',
   'OVERRIDE_GITHUB_TOKEN',
   'DEFAULT_WORKFLOW_TOKEN',

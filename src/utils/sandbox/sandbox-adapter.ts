@@ -1,6 +1,6 @@
 /**
- * Adapter layer that wraps @anthropic-ai/sandbox-runtime with Claude CLI-specific integrations.
- * This file provides the bridge between the external sandbox-runtime package and Claude CLI's
+ * Adapter layer that wraps @anthropic-ai/sandbox-runtime with Microcode CLI-specific integrations.
+ * This file provides the bridge between the external sandbox-runtime package and Microcode CLI's
  * settings system, tool integration, and additional features.
  */
 
@@ -220,7 +220,7 @@ export function convertToSandboxRuntimeConfig(
   }
 
   // Extract filesystem paths from Edit and Read rules
-  // Always include current directory and Claude temp directory as writable
+  // Always include current directory and Microcode temp directory as writable
   // The temp directory is needed for Shell.ts cwd tracking files
   const allowWrite: string[] = ['.', getMicrocodeTempDir()]
   const denyWrite: string[] = []
@@ -247,7 +247,7 @@ export function convertToSandboxRuntimeConfig(
   // Block writes to .microcode/skills in both original and current working directories.
   // The sandbox-runtime's getDangerousDirectories() protects .microcode/commands and
   // .microcode/agents but not .microcode/skills. Skills have the same privilege level
-  // (auto-discovered, auto-loaded, full Claude capabilities) so they need the
+  // (auto-discovered, auto-loaded, full Microcode capabilities) so they need the
   // same OS-level sandbox protection.
   denyWrite.push(resolve(originalCwd, '.microcode', 'skills'))
   if (cwd !== originalCwd) {
@@ -256,7 +256,7 @@ export function convertToSandboxRuntimeConfig(
 
   // SECURITY: Git's is_git_directory() treats cwd as a bare repo if it has
   // HEAD + objects/ + refs/. An attacker planting these (plus a config with
-  // core.fsmonitor) escapes the sandbox when Claude's unsandboxed git runs.
+  // core.fsmonitor) escapes the sandbox when Microcode's unsandboxed git runs.
   //
   // Unconditionally denying these paths makes sandbox-runtime mount
   // /dev/null at non-existent ones, which (a) leaves a 0-byte HEAD stub on
@@ -398,7 +398,7 @@ const bareGitRepoScrubPaths: string[] = []
 
 /**
  * Delete bare-repo files planted at cwd during a sandboxed command, before
- * Claude's unsandboxed git calls can see them. See the SECURITY block above
+ * Microcode's unsandboxed git calls can see them. See the SECURITY block above
  * bareGitRepoFiles. anthropics/microcode#29316.
  */
 function scrubBareGitRepoFiles(): void {
@@ -823,7 +823,7 @@ async function reset(): Promise<void> {
 
 /**
  * Add a command to the excluded commands list (commands that should not be sandboxed)
- * This is a Claude CLI-specific function that updates local settings.
+ * This is a Microcode CLI-specific function that updates local settings.
  */
 export function addToExcludedCommands(
   command: string,
@@ -922,7 +922,7 @@ export interface ISandboxManager {
 }
 
 /**
- * Claude CLI sandbox manager - wraps sandbox-runtime with Claude-specific features
+ * Microcode CLI sandbox manager - wraps sandbox-runtime with Microcode-specific features
  */
 export const SandboxManager: ISandboxManager = {
   // Custom implementations

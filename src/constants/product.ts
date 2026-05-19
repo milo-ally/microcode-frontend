@@ -1,9 +1,9 @@
 export const PRODUCT_URL = 'https://claude.com/microcode'
 
 // Microcode Remote session URLs
-export const CLAUDE_AI_BASE_URL = 'https://claude.ai'
-export const CLAUDE_AI_STAGING_BASE_URL = 'https://microcode-ai.staging.ant.dev'
-export const CLAUDE_AI_LOCAL_BASE_URL = 'http://localhost:4000'
+export const MICROCODE_AI_BASE_URL = 'https://claude.ai'
+export const MICROCODE_AI_STAGING_BASE_URL = 'https://microcode-ai.staging.ant.dev'
+export const MICROCODE_AI_LOCAL_BASE_URL = 'http://localhost:4000'
 
 /**
  * Determine if we're in a staging environment for remote sessions.
@@ -34,19 +34,19 @@ export function isRemoteSessionLocal(
 }
 
 /**
- * Get the base URL for Claude AI based on environment.
+ * Get the base URL for Microcode AI based on environment.
  */
-export function getClaudeAiBaseUrl(
+export function getMicrocodeAiBaseUrl(
   sessionId?: string,
   ingressUrl?: string,
 ): string {
   if (isRemoteSessionLocal(sessionId, ingressUrl)) {
-    return CLAUDE_AI_LOCAL_BASE_URL
+    return MICROCODE_AI_LOCAL_BASE_URL
   }
   if (isRemoteSessionStaging(sessionId, ingressUrl)) {
-    return CLAUDE_AI_STAGING_BASE_URL
+    return MICROCODE_AI_STAGING_BASE_URL
   }
-  return CLAUDE_AI_BASE_URL
+  return MICROCODE_AI_BASE_URL
 }
 
 /**
@@ -71,6 +71,6 @@ export function getRemoteSessionUrl(
     require('../bridge/sessionIdCompat.js') as typeof import('../bridge/sessionIdCompat.js')
   /* eslint-enable @typescript-eslint/no-require-imports */
   const compatId = toCompatSessionId(sessionId)
-  const baseUrl = getClaudeAiBaseUrl(compatId, ingressUrl)
+  const baseUrl = getMicrocodeAiBaseUrl(compatId, ingressUrl)
   return `${baseUrl}/code/${compatId}`
 }

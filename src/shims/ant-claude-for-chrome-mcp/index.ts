@@ -9,7 +9,7 @@ export type Logger = {
   error(message: string): void
 }
 
-export type ClaudeForChromeContext = {
+export type MicrocodeForChromeContext = {
   serverName?: string
   logger?: Logger
   [key: string]: unknown
@@ -86,14 +86,14 @@ export const BROWSER_TOOLS: Array<{ name: string; description: string }> = [
   },
 ]
 
-export function createClaudeForChromeMcpServer(context: ClaudeForChromeContext) {
+export function createMicrocodeForChromeMcpServer(context: MicrocodeForChromeContext) {
   let closed = false
   const handlers = new Map<unknown, unknown>()
 
   return {
     async connect() {
       context.logger?.warn(
-        'Claude in Chrome MCP is running with a restored compatibility shim; browser actions are not available in this workspace.',
+        'Microcode in Chrome MCP is running with a restored compatibility shim; browser actions are not available in this workspace.',
       )
     },
     setRequestHandler(schema: unknown, handler: unknown) {
@@ -103,7 +103,7 @@ export function createClaudeForChromeMcpServer(context: ClaudeForChromeContext) 
       closed = true
       handlers.clear()
       context.logger?.info(
-        'Claude in Chrome MCP shim closed.',
+        'Microcode in Chrome MCP shim closed.',
       )
     },
     get isClosed() {

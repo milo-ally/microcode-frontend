@@ -21,7 +21,7 @@ import { z } from 'zod/v4'
 import { type ChannelEntry, getAllowedChannels } from '../../bootstrap/state.js'
 import { CHANNEL_TAG } from '../../constants/xml.js'
 import {
-  getClaudeAIOAuthTokens,
+  getMicrocodeAIOAuthTokens,
   getSubscriptionType,
 } from '../../utils/auth.js'
 import { lazySchema } from '../../utils/lazySchema.js'
@@ -219,7 +219,7 @@ export function gateChannelServer(
   // OAuth-only. API key users (console) are blocked — there's no
   // channelsEnabled admin surface in console yet, so the policy opt-in
   // flow doesn't exist for them. Drop this when console parity lands.
-  if (!getClaudeAIOAuthTokens()?.accessToken) {
+  if (!getMicrocodeAIOAuthTokens()?.accessToken) {
     return {
       action: 'skip',
       kind: 'auth',

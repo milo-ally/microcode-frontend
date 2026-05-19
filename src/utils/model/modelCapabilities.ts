@@ -6,7 +6,7 @@ import { join } from 'path'
 import { z } from 'zod/v4'
 import { OAUTH_BETA_HEADER } from '../../constants/oauth.js'
 import { getAnthropicClient } from '../../services/api/client.js'
-import { isClaudeAISubscriber } from '../auth.js'
+import { isMicrocodeAISubscriber } from '../auth.js'
 import { logForDebugging } from '../debug.js'
 import { getMicrocodeConfigHomeDir } from '../envUtils.js'
 import { safeParseJSON } from '../json.js'
@@ -57,7 +57,7 @@ function sortForMatching(models: ModelCapability[]): ModelCapability[] {
   )
 }
 
-// Keyed on cache path so tests that set CLAUDE_CONFIG_DIR get a fresh read
+// Keyed on cache path so tests that set MICROCODE_CONFIG_DIR get a fresh read
 const loadCache = memoize(
   (path: string): ModelCapability[] | null => {
     try {
@@ -88,7 +88,7 @@ export async function refreshModelCapabilities(): Promise<void> {
 
   try {
     const anthropic = await getAnthropicClient({ maxRetries: 1 })
-    const betas = isClaudeAISubscriber() ? [OAUTH_BETA_HEADER] : undefined
+    const betas = isMicrocodeAISubscriber() ? [OAUTH_BETA_HEADER] : undefined
     const parsed: ModelCapability[] = []
     for await (const entry of anthropic.models.list({ betas })) {
       const result = ModelCapabilitySchema().safeParse(entry)

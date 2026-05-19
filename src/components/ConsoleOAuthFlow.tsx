@@ -60,7 +60,7 @@ export function ConsoleOAuthFlow({
   const settings = getSettings_DEPRECATED() || {};
   const forceLoginMethod = forceLoginMethodProp ?? settings.forceLoginMethod;
   const orgUUID = settings.forceLoginOrgUUID;
-  const forcedMethodMessage = forceLoginMethod === 'claudeai' ? 'Login method pre-selected: Subscription Plan (Claude Pro/Max)' : forceLoginMethod === 'console' ? 'Login method pre-selected: API Usage Billing (Anthropic Console)' : null;
+  const forcedMethodMessage = forceLoginMethod === 'claudeai' ? 'Login method pre-selected: Subscription Plan (Microcode Pro/Max)' : forceLoginMethod === 'console' ? 'Login method pre-selected: API Usage Billing (Anthropic Console)' : null;
   const terminal = useTerminalNotification();
   const [oauthStatus, setOAuthStatus] = useState<OAuthStatus>(() => {
     if (mode === 'setup-token') {
@@ -80,8 +80,8 @@ export function ConsoleOAuthFlow({
   const [pastedCode, setPastedCode] = useState('');
   const [cursorOffset, setCursorOffset] = useState(0);
   const [oauthService] = useState(() => new OAuthService());
-  const [loginWithClaudeAi, setLoginWithClaudeAi] = useState(() => {
-    // Use Claude AI auth for setup-token mode to support user:inference scope
+  const [loginWithMicrocodeAi, setLoginWithMicrocodeAi] = useState(() => {
+    // Use Microcode AI auth for setup-token mode to support user:inference scope
     return mode === 'setup-token' || forceLoginMethod === 'claudeai';
   });
   // After a few seconds we suggest the user to copy/paste url if the
@@ -111,7 +111,7 @@ export function ConsoleOAuthFlow({
   // Handle Enter to continue on success state
   useKeybinding('confirm:yes', () => {
     logEvent('tengu_oauth_success', {
-      loginWithClaudeAi
+      loginWithMicrocodeAi
     });
     onDone();
   }, {
@@ -189,7 +189,7 @@ export function ConsoleOAuthFlow({
   const startOAuth = useCallback(async () => {
     try {
       logEvent('tengu_oauth_flow_start', {
-        loginWithClaudeAi
+        loginWithMicrocodeAi
       });
       const result = await oauthService.startOAuthFlow(async url_0 => {
         setOAuthStatus({
@@ -198,7 +198,7 @@ export function ConsoleOAuthFlow({
         });
         setTimeout(setShowPastePrompt, 3000, true);
       }, {
-        loginWithClaudeAi,
+        loginWithMicrocodeAi,
         inferenceOnly: mode === 'setup-token',
         expiresIn: mode === 'setup-token' ? 365 * 24 * 60 * 60 : undefined,
         // 1 year for setup-token
@@ -260,7 +260,7 @@ export function ConsoleOAuthFlow({
         ssl_error: sslHint !== null
       });
     }
-  }, [oauthService, setShowPastePrompt, loginWithClaudeAi, mode, orgUUID]);
+  }, [oauthService, setShowPastePrompt, loginWithMicrocodeAi, mode, orgUUID]);
   const pendingOAuthStartRef = useRef(false);
   useEffect(() => {
     if (oauthStatus.state === 'ready_to_start' && !pendingOAuthStartRef.current) {
@@ -276,16 +276,16 @@ export function ConsoleOAuthFlow({
   useEffect(() => {
     if (mode === 'setup-token' && oauthStatus.state === 'success') {
       // Delay to ensure static content is fully rendered before exiting
-      const timer_0 = setTimeout((loginWithClaudeAi_0, onDone_0) => {
+      const timer_0 = setTimeout((loginWithMicrocodeAi_0, onDone_0) => {
         logEvent('tengu_oauth_success', {
-          loginWithClaudeAi: loginWithClaudeAi_0
+          loginWithMicrocodeAi: loginWithMicrocodeAi_0
         });
         // Don't clear terminal so the token remains visible
         onDone_0();
-      }, 500, loginWithClaudeAi, onDone);
+      }, 500, loginWithMicrocodeAi, onDone);
       return () => clearTimeout(timer_0);
     }
-  }, [mode, oauthStatus, loginWithClaudeAi, onDone]);
+  }, [mode, oauthStatus, loginWithMicrocodeAi, onDone]);
 
   // Cleanup OAuth service when component unmounts
   useEffect(() => {
@@ -325,7 +325,7 @@ export function ConsoleOAuthFlow({
             </Box>
           </Box>}
       <Box paddingLeft={1} flexDirection="column" gap={1}>
-        <OAuthStatusMessage oauthStatus={oauthStatus} mode={mode} startingMessage={startingMessage} forcedMethodMessage={forcedMethodMessage} showPastePrompt={showPastePrompt} pastedCode={pastedCode} setPastedCode={setPastedCode} cursorOffset={cursorOffset} setCursorOffset={setCursorOffset} textInputColumns={textInputColumns} handleSubmitCode={handleSubmitCode} setOAuthStatus={setOAuthStatus} setLoginWithClaudeAi={setLoginWithClaudeAi} />
+        <OAuthStatusMessage oauthStatus={oauthStatus} mode={mode} startingMessage={startingMessage} forcedMethodMessage={forcedMethodMessage} showPastePrompt={showPastePrompt} pastedCode={pastedCode} setPastedCode={setPastedCode} cursorOffset={cursorOffset} setCursorOffset={setCursorOffset} textInputColumns={textInputColumns} handleSubmitCode={handleSubmitCode} setOAuthStatus={setOAuthStatus} setLoginWithMicrocodeAi={setLoginWithMicrocodeAi} />
       </Box>
     </Box>;
 }
@@ -342,7 +342,7 @@ type OAuthStatusMessageProps = {
   textInputColumns: number;
   handleSubmitCode: (value: string, url: string) => void;
   setOAuthStatus: (status: OAuthStatus) => void;
-  setLoginWithClaudeAi: (value: boolean) => void;
+  setLoginWithMicrocodeAi: (value: boolean) => void;
 };
 function OAuthStatusMessage(t0) {
   const $ = _c(51);
@@ -359,12 +359,12 @@ function OAuthStatusMessage(t0) {
     textInputColumns,
     handleSubmitCode,
     setOAuthStatus,
-    setLoginWithClaudeAi
+    setLoginWithMicrocodeAi
   } = t0;
   switch (oauthStatus.state) {
     case "idle":
       {
-        const t1 = startingMessage ? startingMessage : "Microcode can be used with your Claude subscription or billed based on API usage through your Console account.";
+        const t1 = startingMessage ? startingMessage : "Microcode can be used with your Microcode subscription or billed based on API usage through your Console account.";
         let t2;
         if ($[0] !== t1) {
           t2 = <Text bold={true}>{t1}</Text>;
@@ -383,7 +383,7 @@ function OAuthStatusMessage(t0) {
         let t4;
         if ($[3] === Symbol.for("react.memo_cache_sentinel")) {
           t4 = {
-            label: <Text>Claude account with subscription ·{" "}<Text dimColor={true}>Pro, Max, Team, or Enterprise</Text>{false && <Text>{"\n"}<Text color="warning">[ANT-ONLY]</Text>{" "}<Text dimColor={true}>Please use this option unless you need to login to a special org for accessing sensitive data (e.g. customer data, HIPI data) with the Console option</Text></Text>}{"\n"}</Text>,
+            label: <Text>Microcode account with subscription ·{" "}<Text dimColor={true}>Pro, Max, Team, or Enterprise</Text>{false && <Text>{"\n"}<Text color="warning">[ANT-ONLY]</Text>{" "}<Text dimColor={true}>Please use this option unless you need to login to a special org for accessing sensitive data (e.g. customer data, HIPI data) with the Console option</Text></Text>}{"\n"}</Text>,
             value: "claudeai"
           };
           $[3] = t4;
@@ -411,7 +411,7 @@ function OAuthStatusMessage(t0) {
           t6 = $[5];
         }
         let t7;
-        if ($[6] !== setLoginWithClaudeAi || $[7] !== setOAuthStatus) {
+        if ($[6] !== setLoginWithMicrocodeAi || $[7] !== setOAuthStatus) {
           t7 = <Box><Select options={t6} onChange={value_0 => {
               if (value_0 === "platform") {
                 logEvent("tengu_oauth_platform_selected", {});
@@ -424,14 +424,14 @@ function OAuthStatusMessage(t0) {
                 });
                 if (value_0 === "claudeai") {
                   logEvent("tengu_oauth_claudeai_selected", {});
-                  setLoginWithClaudeAi(true);
+                  setLoginWithMicrocodeAi(true);
                 } else {
                   logEvent("tengu_oauth_console_selected", {});
-                  setLoginWithClaudeAi(false);
+                  setLoginWithMicrocodeAi(false);
                 }
               }
             }} /></Box>;
-          $[6] = setLoginWithClaudeAi;
+          $[6] = setLoginWithMicrocodeAi;
           $[7] = setOAuthStatus;
           $[8] = t7;
         } else {

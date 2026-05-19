@@ -26,7 +26,7 @@ import { getManagedFilePath } from './settings/managedPath.js'
 import { isRestrictedToPluginOnly } from './settings/pluginOnlyPolicy.js'
 
 // Microcode configuration directory names
-export const CLAUDE_CONFIG_DIRECTORIES = [
+export const MICROCODE_CONFIG_DIRECTORIES = [
   'commands',
   'agents',
   'output-styles',
@@ -35,7 +35,7 @@ export const CLAUDE_CONFIG_DIRECTORIES = [
   ...(feature('TEMPLATES') ? (['templates'] as const) : []),
 ] as const
 
-export type ClaudeConfigDirectory = (typeof CLAUDE_CONFIG_DIRECTORIES)[number]
+export type MicrocodeConfigDirectory = (typeof MICROCODE_CONFIG_DIRECTORIES)[number]
 
 export type MarkdownFile = {
   filePath: string
@@ -232,7 +232,7 @@ function resolveStopBoundary(cwd: string): string | null {
  * @returns Array of directory paths containing .microcode/subdir, from most specific (cwd) to least specific
  */
 export function getProjectDirsUpToHome(
-  subdir: ClaudeConfigDirectory,
+  subdir: MicrocodeConfigDirectory,
   cwd: string,
 ): string[] {
   const home = resolve(homedir()).normalize('NFC')
@@ -296,7 +296,7 @@ export function getProjectDirsUpToHome(
  */
 export const loadMarkdownFilesForSubdir = memoize(
   async function (
-    subdir: ClaudeConfigDirectory,
+    subdir: MicrocodeConfigDirectory,
     cwd: string,
   ): Promise<MarkdownFile[]> {
     const searchStartTime = Date.now()
@@ -327,9 +327,9 @@ export const loadMarkdownFilesForSubdir = memoize(
         dir => normalizePathForComparison(dir) === worktreeSubdir,
       )
       if (!worktreeHasSubdir) {
-        const mainClaudeSubdir = join(canonicalRoot, '.microcode', subdir)
-        if (!projectDirs.includes(mainClaudeSubdir)) {
-          projectDirs.push(mainClaudeSubdir)
+        const mainMicrocodeSubdir = join(canonicalRoot, '.microcode', subdir)
+        if (!projectDirs.includes(mainMicrocodeSubdir)) {
+          projectDirs.push(mainMicrocodeSubdir)
         }
       }
     }
@@ -426,7 +426,7 @@ export const loadMarkdownFilesForSubdir = memoize(
     return deduplicatedFiles
   },
   // Custom resolver creates cache key from both subdir and cwd parameters
-  (subdir: ClaudeConfigDirectory, cwd: string) => `${subdir}:${cwd}`,
+  (subdir: MicrocodeConfigDirectory, cwd: string) => `${subdir}:${cwd}`,
 )
 
 /**

@@ -94,7 +94,7 @@ function getTokenFromFileDescriptor(): string | null {
  *     update_environment_variables stdin message from the parent bridge process.
  *  2. File descriptor (legacy path) — MICROCODE_WEBSOCKET_AUTH_FILE_DESCRIPTOR,
  *     read once and cached.
- *  3. Well-known file — CLAUDE_SESSION_INGRESS_TOKEN_FILE env var path, or
+ *  3. Well-known file — MICROCODE_SESSION_INGRESS_TOKEN_FILE env var path, or
  *     /home/microcode/.microcode/remote/.session_ingress_token. Covers subprocesses
  *     that can't inherit the FD.
  */

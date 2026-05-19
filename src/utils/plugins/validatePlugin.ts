@@ -255,14 +255,14 @@ export async function validatePluginManifest(
     const manifest = result.data
 
     // Warn if name isn't strict kebab-case. CC's schema only rejects spaces,
-    // but the Claude.ai marketplace sync rejects non-kebab names. Surfacing
+    // but the Microcode.ai marketplace sync rejects non-kebab names. Surfacing
     // this here lets authors catch it in CI before the sync fails on them.
     if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(manifest.name)) {
       warnings.push({
         path: 'name',
         message:
           `Plugin name "${manifest.name}" is not kebab-case. Microcode accepts ` +
-          `it, but the Claude.ai marketplace sync requires kebab-case ` +
+          `it, but the Microcode.ai marketplace sync requires kebab-case ` +
           `(lowercase letters, digits, and hyphens only, e.g., "my-plugin").`,
       })
     }
@@ -447,7 +447,7 @@ export async function validateMarketplaceManifest(
       // Only local sources: remote sources would need cloning to check.
       const manifestDir = path.dirname(absolutePath)
       const marketplaceRoot =
-        path.basename(manifestDir) === '.microcode-plugin' || path.basename(manifestDir) === '.claude-plugin'
+        path.basename(manifestDir) === '.microcode-plugin' || path.basename(manifestDir) === '.microcode-plugin'
           ? path.dirname(manifestDir)
           : manifestDir
       for (const [i, entry] of marketplace.plugins.entries()) {
@@ -464,14 +464,14 @@ export async function validateMarketplaceManifest(
           '.microcode-plugin',
           'plugin.json',
         )
-        // Fallback to .claude-plugin if .microcode-plugin doesn't exist
+        // Fallback to .microcode-plugin if .microcode-plugin doesn't exist
         try {
           await readFile(pluginJsonPath, { encoding: 'utf-8' })
         } catch {
           pluginJsonPath = path.join(
             marketplaceRoot,
             entry.source,
-            '.claude-plugin',
+            '.microcode-plugin',
             'plugin.json',
           )
         }
@@ -591,7 +591,7 @@ function validateComponentFile(
     warnings.push({
       path: 'description',
       message:
-        `No description in frontmatter. A description helps users and Claude ` +
+        `No description in frontmatter. A description helps users and Microcode ` +
         `understand when to use this ${fileType}.`,
     })
   }
@@ -838,9 +838,9 @@ export async function validateManifest(
   }
 
   if (stats?.isDirectory()) {
-    // Look for manifest files in .microcode-plugin or .claude-plugin directory
+    // Look for manifest files in .microcode-plugin or .microcode-plugin directory
     // Prefer marketplace.json over plugin.json
-    const pluginDirCandidates = ['.microcode-plugin', '.claude-plugin']
+    const pluginDirCandidates = ['.microcode-plugin', '.microcode-plugin']
 
     for (const pluginDir of pluginDirCandidates) {
       const marketplacePath = path.join(absolutePath, pluginDir, 'marketplace.json')
@@ -862,7 +862,7 @@ export async function validateManifest(
       errors: [
         {
           path: 'directory',
-          message: `No manifest found in directory. Expected .microcode-plugin/marketplace.json or .microcode-plugin/plugin.json (also checked .claude-plugin/)`,
+          message: `No manifest found in directory. Expected .microcode-plugin/marketplace.json or .microcode-plugin/plugin.json (also checked .microcode-plugin/)`,
         },
       ],
       warnings: [],

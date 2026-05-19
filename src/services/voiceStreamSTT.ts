@@ -16,7 +16,7 @@ import WebSocket from 'ws'
 import { getOauthConfig } from '../constants/oauth.js'
 import {
   checkAndRefreshOAuthTokenIfNeeded,
-  getClaudeAIOAuthTokens,
+  getMicrocodeAIOAuthTokens,
   isAnthropicAuthEnabled,
 } from '../utils/auth.js'
 import { logForDebugging } from '../utils/debug.js'
@@ -97,12 +97,12 @@ type VoiceStreamMessage =
 
 export function isVoiceStreamAvailable(): boolean {
   // voice_stream uses the same OAuth as Microcode — available when the
-  // user is authenticated with Anthropic (Claude.ai subscriber or has
+  // user is authenticated with Anthropic (Microcode.ai subscriber or has
   // valid OAuth tokens).
   if (!isAnthropicAuthEnabled()) {
     return false
   }
-  const tokens = getClaudeAIOAuthTokens()
+  const tokens = getMicrocodeAIOAuthTokens()
   return tokens !== null && tokens.accessToken !== null
 }
 
@@ -115,7 +115,7 @@ export async function connectVoiceStream(
   // Ensure OAuth token is fresh before connecting
   await checkAndRefreshOAuthTokenIfNeeded()
 
-  const tokens = getClaudeAIOAuthTokens()
+  const tokens = getMicrocodeAIOAuthTokens()
   if (!tokens?.accessToken) {
     logForDebugging('[voice_stream] No OAuth token available')
     return null

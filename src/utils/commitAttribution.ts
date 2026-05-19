@@ -168,7 +168,7 @@ export function sanitizeModelName(shortName: string): string {
 }
 
 /**
- * Attribution state for tracking Claude's contributions to files.
+ * Attribution state for tracking Microcode's contributions to files.
  */
 export type AttributionState = {
   // File states keyed by relative path (from cwd)
@@ -192,7 +192,7 @@ export type AttributionState = {
 }
 
 /**
- * Summary of Claude's contribution for a commit.
+ * Summary of Microcode's contribution for a commit.
  */
 export type AttributionSummary = {
   microcodePercent: number
@@ -332,7 +332,7 @@ function computeFileModificationState(
   const normalizedPath = normalizeFilePath(filePath)
 
   try {
-    // Calculate Claude's character contribution
+    // Calculate Microcode's character contribution
     let microcodeContribution: number
 
     if (oldContent === '' || newContent === '') {
@@ -396,7 +396,7 @@ export async function getFileMtime(filePath: string): Promise<number> {
 }
 
 /**
- * Track a file modification by Claude.
+ * Track a file modification by Microcode.
  * Called after Edit/Write tool completes.
  */
 export function trackFileModification(
@@ -433,7 +433,7 @@ export function trackFileModification(
 }
 
 /**
- * Track a file creation by Claude (e.g., via bash command).
+ * Track a file creation by Microcode (e.g., via bash command).
  * Used when Microcode creates a new file through a non-tracked mechanism.
  */
 export function trackFileCreation(
@@ -447,8 +447,8 @@ export function trackFileCreation(
 }
 
 /**
- * Track a file deletion by Claude (e.g., via bash rm command).
- * Used when Claude deletes a file through a non-tracked mechanism.
+ * Track a file deletion by Microcode (e.g., via bash rm command).
+ * Used when Microcode deletes a file through a non-tracked mechanism.
  */
 export function trackFileDeletion(
   state: AttributionState,
@@ -557,7 +557,7 @@ export async function calculateCommitAttribution(
   const surfaces = new Set<string>()
   const surfaceCounts: Record<string, number> = {}
 
-  let totalClaudeChars = 0
+  let totalMicrocodeChars = 0
   let totalHumanChars = 0
 
   // Merge file states from all sessions
@@ -662,7 +662,7 @@ export async function calculateCommitAttribution(
             const diffSize = await getGitDiffSize(file)
             humanChars = diffSize > 0 ? diffSize : stats.size
           } else {
-            // New file not created by Claude
+            // New file not created by Microcode
             humanChars = stats.size
           }
         } catch {
@@ -705,16 +705,16 @@ export async function calculateCommitAttribution(
       surface: result.surface,
     }
 
-    totalClaudeChars += result.microcodeChars
+    totalMicrocodeChars += result.microcodeChars
     totalHumanChars += result.humanChars
 
     surfaceCounts[result.surface] =
       (surfaceCounts[result.surface] ?? 0) + result.microcodeChars
   }
 
-  const totalChars = totalClaudeChars + totalHumanChars
+  const totalChars = totalMicrocodeChars + totalHumanChars
   const microcodePercent =
-    totalChars > 0 ? Math.round((totalClaudeChars / totalChars) * 100) : 0
+    totalChars > 0 ? Math.round((totalMicrocodeChars / totalChars) * 100) : 0
 
   // Calculate surface breakdown (percentage of total content per surface)
   const surfaceBreakdown: Record<
@@ -731,7 +731,7 @@ export async function calculateCommitAttribution(
     version: 1,
     summary: {
       microcodePercent,
-      microcodeChars: totalClaudeChars,
+      microcodeChars: totalMicrocodeChars,
       humanChars: totalHumanChars,
       surfaces: Array.from(surfaces),
     },

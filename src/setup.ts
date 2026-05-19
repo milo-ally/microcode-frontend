@@ -421,7 +421,7 @@ export async function setup(
       process.env.MICROCODE_ENTRYPOINT !== 'local-agent' &&
       // Same for CCD (Microcode in Desktop) — apps#29127 passes the flag
       // unconditionally to unlock mid-session bypass switching
-      process.env.MICROCODE_ENTRYPOINT !== 'claude-desktop'
+      process.env.MICROCODE_ENTRYPOINT !== 'microcode-desktop'
     ) {
       // Only await if permission mode is set to bypass
       const [isDocker, hasInternet] = await Promise.all([
