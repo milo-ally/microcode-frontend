@@ -1,6 +1,6 @@
 # Microcode
 
-An AI-powered coding assistant CLI, inspired by [claude-code-haha](https://github.com/oboard/claude-code-rev).
+An AI-powered coding assistant CLI, inspired by [oboard/claude-code-rev](https://github.com/oboard/claude-code-rev).
 
 Microcode is a terminal-based AI coding agent that can understand your codebase, edit files, run commands, and help you build software interactively.
 
